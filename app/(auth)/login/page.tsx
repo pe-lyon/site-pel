@@ -26,14 +26,9 @@ export default function LoginPage() {
     // Redirection selon l'email : admin du site → /admin, sinon → dashboard
     const adminEmail = 'admin@assemblee-pel.fr'
     const next = new URLSearchParams(window.location.search).get('next')
-    if (next) {
-      router.push(next)
-    } else if (data.user.email === adminEmail) {
-      router.push('/admin')
-    } else {
-      router.push('/dashboard')
-    }
-    router.refresh()
+    const destination = next ?? (data.user.email === adminEmail ? '/admin' : '/dashboard')
+    // Navigation dure pour éviter que le middleware de /login n'interfère
+    window.location.href = destination
   }
 
   return (
