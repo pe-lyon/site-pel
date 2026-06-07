@@ -27,7 +27,7 @@ export default function AdminScrutinsPage() {
     setUserId(user?.id ?? null)
     const [{ data: s }, { data: b }] = await Promise.all([
       supabase.from('vote_sessions').select('*, bills(number, title)').order('created_at', { ascending: false }),
-      supabase.from('bills').select('id, number, title, status').in('status', ['deposee', 'en_discussion', 'soumise_au_vote']).order('number'),
+      supabase.from('bills').select('*').in('status', ['deposee', 'en_discussion', 'soumise_au_vote']).order('number'),
     ])
     setSessions(s ?? [])
     setBills(b ?? [])

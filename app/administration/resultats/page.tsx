@@ -47,8 +47,8 @@ export default function ResultatsPage() {
 
     const [{ data: votes }, { data: profiles }, { data: groups }] = await Promise.all([
       supabase.from('votes').select('*, profiles(first_name, last_name, group_id)').eq('session_id', sessionId),
-      supabase.from('profiles').select('id, first_name, last_name, group_id'),
-      supabase.from('political_groups').select('id, name, color'),
+      supabase.from('profiles').select('*'),
+      supabase.from('political_groups').select('*'),
     ])
 
     const r: Results = {
