@@ -23,8 +23,16 @@ export default function LoginPage() {
       return
     }
 
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single()
-    router.push('/dashboard')
+    // Redirection selon l'email : admin du site → /admin, sinon → dashboard
+    const adminEmail = 'admin@assemblee-pel.fr'
+    const next = new URLSearchParams(window.location.search).get('next')
+    if (next) {
+      router.push(next)
+    } else if (data.user.email === adminEmail) {
+      router.push('/admin')
+    } else {
+      router.push('/dashboard')
+    }
     router.refresh()
   }
 
