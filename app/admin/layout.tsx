@@ -7,10 +7,10 @@ export const dynamic = 'force-dynamic'
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/admin')
+  if (!user) redirect('/admin/login')
 
   const { data: profile } = await supabase.from('profiles').select('role, first_name, last_name').eq('id', user.id).single()
-  if (profile?.role !== 'president_seance') redirect('/dashboard')
+  if (profile?.role !== 'president_seance') redirect('/admin/login')
 
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--pel-creme)' }}>

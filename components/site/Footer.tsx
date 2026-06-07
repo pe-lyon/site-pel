@@ -55,7 +55,7 @@ export default function Footer() {
           <p>© {year} Parlement des Étudiants de Lyon — Tous droits réservés</p>
           <div className="flex items-center gap-4">
             <p>Plateforme développée avec ❤️</p>
-            <Link href="/admin" className="text-white/20 hover:text-white/50 transition-colors text-xs">
+            <Link href="/admin/login" className="text-white/20 hover:text-white/50 transition-colors text-xs">
               Connexion administrative
             </Link>
           </div>
