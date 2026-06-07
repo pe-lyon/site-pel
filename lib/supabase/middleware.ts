@@ -27,16 +27,25 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Routes publiques
-  const publicRoutes = ['/login', '/auth/callback', '/mot-de-passe-oublie']
-  if (publicRoutes.includes(pathname)) {
-    if (user) {
+  // Routes entièrement publiques (site vitrine + séance publique)
+  const publicPrefixes = [
+    '/', '/presentation', '/bureau', '/groupes',
+    '/actualites', '/agenda', '/ressources', '/contact',
+    '/seance', '/login', '/auth/callback', '/mot-de-passe-oublie',
+  ]
+  const isPublic = publicPrefixes.some(prefix =>
+    pathname === prefix || (prefix !== '/' && pathname.startsWith(prefix + '/'))
+  )
+
+  if (isPublic) {
+    // Si connecté et sur /login → rediriger vers dashboard
+    if (user && pathname === '/login') {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
     return supabaseResponse
   }
 
-  // Routes protégées
+  // Routes protégées (dashboard, administration, profil, scrutin, etc.)
   if (!user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }

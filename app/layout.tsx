@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Poppins } from 'next/font/google'
+import { Poppins, Barlow_Condensed } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
 
@@ -10,6 +10,15 @@ const poppins = Poppins({
   display: 'swap',
 })
 
+// Barlow Condensed = fallback institutionnel condensé pour les titres
+// (remplacé par Prachason Neue Condensed si les fichiers sont dans /public/fonts/)
+const barlowCondensed = Barlow_Condensed({
+  subsets: ['latin'],
+  weight: ['600', '700', '800'],
+  variable: '--font-barlow',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
   title: 'Parlement des Étudiants de Lyon',
   description: 'Le Parlement des Étudiants de Lyon est une institution parlementaire étudiante indépendante.',
@@ -17,7 +26,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={poppins.variable}>
+    <html lang="fr" className={`${poppins.variable} ${barlowCondensed.variable}`}>
       <head>
         <link rel="icon" href="/logo-pel.png" />
       </head>
