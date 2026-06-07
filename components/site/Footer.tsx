@@ -53,7 +53,12 @@ export default function Footer() {
         </div>
         <div className="border-t border-white/20 mt-12 pt-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-blue-200">
           <p>© {year} Parlement des Étudiants de Lyon — Tous droits réservés</p>
-          <p>Plateforme développée avec ❤️</p>
+          <div className="flex items-center gap-4">
+            <p>Plateforme développée avec ❤️</p>
+            <Link href="/admin" className="text-white/20 hover:text-white/50 transition-colors text-xs">
+              Connexion administrative
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

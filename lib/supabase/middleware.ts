@@ -38,9 +38,10 @@ export async function updateSession(request: NextRequest) {
   )
 
   if (isPublic) {
-    // Si connecté et sur /login → rediriger vers dashboard
+    // Si connecté et sur /login → rediriger vers la destination voulue ou dashboard
     if (user && pathname === '/login') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      const next = request.nextUrl.searchParams.get('next') ?? '/dashboard'
+      return NextResponse.redirect(new URL(next, request.url))
     }
     return supabaseResponse
   }
