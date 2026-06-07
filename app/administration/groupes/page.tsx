@@ -40,7 +40,7 @@ export default function GroupesPage() {
         .from('political_groups')
         .select('*, profiles(*), president:profiles!president_id(first_name, last_name)')
         .order('name'),
-      supabase.from('profiles').select('id, first_name, last_name, role').order('last_name'),
+      supabase.from('profiles').select('*').order('last_name'),
     ])
     setGroups(g ?? [])
     setProfiles(p ?? [])
