@@ -1,5 +1,8 @@
+export const dynamic = 'force-dynamic'
+
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import DashboardShell from '@/components/layout/DashboardShell'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -8,7 +11,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('*')
     .eq('id', user.id)
     .single()
 
@@ -16,5 +19,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/dashboard')
   }
 
-  return <>{children}</>
+  return (
+    <DashboardShell
+      role={profile.role}
+      firstName={profile.first_name}
+      lastName={profile.last_name}
+    >
+      {children}
+    </DashboardShell>
+  )
 }

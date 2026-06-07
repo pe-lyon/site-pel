@@ -9,6 +9,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        'pel-bleu': '#04439a',
+        'pel-rouge': '#b21d0b',
+        'pel-blanc': '#ffffff',
+        'pel-creme': '#f8f7f4',
+        'pel-bleu-light': '#e8f0fb',
+        'pel-gris': '#6b7280',
+        'pel-gris-light': '#e5e7eb',
+        'pel-noir': '#111827',
+        // Legacy colors (kept for dashboard compatibility)
         pel: {
           blue: '#1a3a6b',
           'blue-light': '#2c5282',
@@ -21,11 +30,11 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        serif: ['Playfair Display', 'Georgia', 'serif'],
+        sans: ['var(--font-poppins)', 'system-ui', 'sans-serif'],
+        title: ['var(--font-titre)', 'sans-serif'],
       },
       backgroundImage: {
-        'gradient-pel': 'linear-gradient(135deg, #1a3a6b 0%, #2c5282 100%)',
+        'gradient-pel': 'linear-gradient(135deg, #04439a 0%, #033278 100%)',
       },
     },
   },

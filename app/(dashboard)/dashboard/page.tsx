@@ -1,79 +1,80 @@
-export const dynamic = 'force-dynamic'
+'use client'
 
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { Users, FileText, Vote, UserCheck, TrendingUp, Clock } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Users, FileText, Vote, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { formatDateTime, formatDate } from '@/lib/utils'
 import { STATUS_LABELS, STATUS_COLORS } from '@/types'
 import TopBar from '@/components/layout/TopBar'
+import { createClient } from '@/lib/supabase/client'
 
-export default async function DashboardPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+async function adminRead(table: string, select = '*', order?: { col: string; asc?: boolean }, filters?: Record<string, string>) {
+  const res = await fetch('/api/admin/read', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ table, select, order, filters }),
+  })
+  const result = await res.json()
+  return result.data ?? []
+}
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*, political_groups(*)')
-    .eq('id', user.id)
-    .single()
+export default function DashboardPage() {
+  const [profile, setProfile] = useState<any>(null)
+  const [totalParlementaires, setTotalParlementaires] = useState(0)
+  const [totalGroupes, setTotalGroupes] = useState(0)
+  const [billsEnCours, setBillsEnCours] = useState(0)
+  const [billsVote, setBillsVote] = useState(0)
+  const [activeSession, setActiveSession] = useState<any>(null)
+  const [recentBills, setRecentBills] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const [
-    { count: totalParlementaires },
-    { count: totalGroupes },
-    { data: bills },
-    { data: activeSessions },
-    { data: recentBills },
-  ] = await Promise.all([
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
-    supabase.from('political_groups').select('*', { count: 'exact', head: true }),
-    supabase.from('bills').select('status'),
-    supabase.from('vote_sessions')
-      .select('*, bills(title, number)')
-      .eq('status', 'ouvert')
-      .order('opened_at', { ascending: false })
-      .limit(1),
-    supabase.from('bills')
-      .select('*, profiles(first_name, last_name)')
-      .order('created_at', { ascending: false })
-      .limit(5),
-  ])
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { window.location.href = '/login'; return }
 
-  const billsEnCours = bills?.filter(b => b.status === 'en_discussion').length ?? 0
-  const billsVote = bills?.filter(b => b.status === 'soumise_au_vote').length ?? 0
-  const activeSession = activeSessions?.[0]
+      const [profiles, groups, bills, sessions, recent] = await Promise.all([
+        adminRead('profiles', '*'),
+        adminRead('political_groups', '*'),
+        adminRead('bills', 'status'),
+        adminRead('vote_sessions', '*, bills(title, number)', { col: 'opened_at', asc: false }, { status: 'ouvert' }),
+        adminRead('bills', '*, profiles(first_name, last_name)', { col: 'created_at', asc: false }),
+      ])
+
+      setTotalParlementaires(profiles.length)
+      setTotalGroupes(groups.length)
+      setBillsEnCours(bills.filter((b: any) => b.status === 'en_discussion').length)
+      setBillsVote(bills.filter((b: any) => b.status === 'soumise_au_vote').length)
+      setActiveSession(sessions?.[0] ?? null)
+      setRecentBills(recent.slice(0, 5))
+
+      // Profil courant
+      const myProfile = await adminRead('profiles', '*, political_groups(*)', undefined, { id: user.id })
+      setProfile(myProfile?.[0] ?? null)
+
+      setLoading(false)
+    }
+    load()
+  }, [])
 
   const stats = [
-    {
-      label: 'Parlementaires',
-      value: totalParlementaires ?? 0,
-      icon: Users,
-      color: 'bg-blue-500',
-      href: '/administration/parlementaires',
-    },
-    {
-      label: 'Groupes politiques',
-      value: totalGroupes ?? 0,
-      icon: TrendingUp,
-      color: 'bg-purple-500',
-      href: '/hemicycle',
-    },
-    {
-      label: 'Propositions en discussion',
-      value: billsEnCours,
-      icon: FileText,
-      color: 'bg-amber-500',
-      href: '/propositions',
-    },
-    {
-      label: 'Soumises au vote',
-      value: billsVote,
-      icon: Vote,
-      color: 'bg-red-500',
-      href: '/propositions',
-    },
+    { label: 'Parlementaires', value: totalParlementaires, icon: Users, color: 'bg-blue-500', href: '/administration/parlementaires' },
+    { label: 'Groupes politiques', value: totalGroupes, icon: TrendingUp, color: 'bg-purple-500', href: '/hemicycle' },
+    { label: 'Propositions en discussion', value: billsEnCours, icon: FileText, color: 'bg-amber-500', href: '/propositions' },
+    { label: 'Soumises au vote', value: billsVote, icon: Vote, color: 'bg-red-500', href: '/propositions' },
   ]
+
+  if (loading) {
+    return (
+      <div>
+        <TopBar title="Tableau de bord" />
+        <div className="flex items-center justify-center h-96">
+          <div className="w-8 h-8 border-2 border-pel-blue/30 border-t-pel-blue rounded-full animate-spin" />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -145,7 +146,7 @@ export default async function DashboardPage() {
               </Link>
             </div>
 
-            {recentBills && recentBills.length > 0 ? (
+            {recentBills.length > 0 ? (
               <div className="space-y-3">
                 {recentBills.map((bill) => (
                   <Link
@@ -172,7 +173,7 @@ export default async function DashboardPage() {
             )}
           </div>
 
-          {/* Mon groupe */}
+          {/* Ma situation */}
           <div className="card">
             <h2 className="section-title mb-4">Ma situation</h2>
             <div className="space-y-3">

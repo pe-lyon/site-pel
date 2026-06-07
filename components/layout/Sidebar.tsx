@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
@@ -16,6 +17,7 @@ import {
   LogOut,
   ChevronDown,
   ChevronRight,
+  Calendar,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { UserRole } from '@/types'
@@ -45,6 +47,7 @@ const adminItems: NavItem[] = [
   { href: '/administration/scrutins', label: 'Scrutins', icon: Vote },
   { href: '/administration/procurations', label: 'Procurations', icon: UserCheck },
   { href: '/administration/resultats', label: 'Résultats', icon: BarChart3 },
+  { href: '/administration/seances', label: 'Séances', icon: Calendar },
 ]
 
 interface SidebarProps {
@@ -71,14 +74,19 @@ export default function Sidebar({ role, firstName, lastName }: SidebarProps) {
   return (
     <aside className="w-64 bg-pel-blue min-h-screen flex flex-col shadow-xl">
       {/* Logo */}
-      <div className="px-6 py-6 border-b border-pel-blue-light/40">
+      <div className="px-6 py-5 border-b border-pel-blue-light/40">
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-            <span className="text-pel-blue font-bold text-sm">PEL</span>
-          </div>
+          <Image
+            src="/logo-pel.png"
+            alt="PE de Lyon"
+            width={44}
+            height={44}
+            className="rounded-lg flex-shrink-0"
+            style={{ filter: 'brightness(0) invert(1)' }}
+          />
           <div>
-            <p className="text-white font-bold text-sm leading-tight">Parlement des</p>
-            <p className="text-white font-bold text-sm leading-tight">Étudiants de Lyon</p>
+            <p className="text-white font-bold text-base leading-tight">PE de Lyon</p>
+            <p className="text-blue-200 text-xs leading-tight">Parlement des Étudiants</p>
           </div>
         </Link>
       </div>

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { Profile, PoliticalGroup, UserRole, ROLE_LABELS } from '@/types'
 import { getInitials } from '@/lib/utils'
 import toast from 'react-hot-toast'
@@ -28,8 +27,18 @@ const emptyForm: FormData = {
   group_id: '',
 }
 
+async function adminRead(table: string, select = '*', order?: { col: string, asc?: boolean }) {
+  const res = await fetch('/api/admin/read', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ table, select, order }),
+  })
+  const result = await res.json()
+  if (!res.ok) throw new Error(result.error)
+  return result.data
+}
+
 export default function ParlementairesPage() {
-  const supabase = createClient()
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [groups, setGroups] = useState<PoliticalGroup[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,14 +48,19 @@ export default function ParlementairesPage() {
   const [saving, setSaving] = useState(false)
 
   const fetchData = useCallback(async () => {
-    const [{ data: p }, { data: g }] = await Promise.all([
-      supabase.from('profiles').select('*, political_groups(*)').order('last_name'),
-      supabase.from('political_groups').select('*').order('name'),
-    ])
-    setProfiles(p ?? [])
-    setGroups(g ?? [])
-    setLoading(false)
-  }, [supabase])
+    try {
+      const [p, g] = await Promise.all([
+        adminRead('profiles', '*, political_groups!profiles_group_id_fkey(*)', { col: 'last_name' }),
+        adminRead('political_groups', '*', { col: 'name' }),
+      ])
+      setProfiles(p ?? [])
+      setGroups(g ?? [])
+    } catch (err: any) {
+      toast.error('Erreur de chargement : ' + err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     fetchData()
@@ -72,51 +86,38 @@ export default function ParlementairesPage() {
     setShowForm(true)
   }
 
+  async function adminWrite(table: string, operation: string, data: any, filters?: any) {
+    const res = await fetch('/api/admin/write', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ table, operation, data, filters }),
+    })
+    const result = await res.json()
+    if (!res.ok) throw new Error(result.error)
+    return result.data
+  }
+
   async function handleSave() {
     setSaving(true)
     try {
       if (editing) {
-        // Mise à jour
-        const { error } = await supabase.from('profiles').update({
+        await adminWrite('profiles', 'update', {
           first_name: form.first_name,
           last_name: form.last_name,
           birth_date: form.birth_date || null,
           role: form.role,
           group_id: form.group_id || null,
-        }).eq('id', editing.id)
-        if (error) throw error
+        }, { id: editing.id })
         toast.success('Parlementaire modifié')
       } else {
-        // Création via Supabase Auth Admin (depuis le client, on utilise signUp)
-        const { data: authData, error: authError } = await supabase.auth.admin
-          ? (supabase as any).auth.admin.createUser({
-              email: form.email,
-              password: form.password,
-              email_confirm: true,
-              user_metadata: {
-                first_name: form.first_name,
-                last_name: form.last_name,
-                role: form.role,
-              },
-            })
-          : { data: null, error: new Error('Admin API non disponible côté client') }
-
-        if (authError) {
-          // Fallback: utiliser l'API route
-          const res = await fetch('/api/admin/create-user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(form),
-          })
-          const result = await res.json()
-          if (!res.ok) throw new Error(result.error)
-        } else if (authData?.user) {
-          await supabase.from('profiles').update({
-            role: form.role,
-            group_id: form.group_id || null,
-            birth_date: form.birth_date || null,
-          }).eq('id', authData.user.id)
-        }
+        // Création via l'API route (service role côté serveur)
+        const res = await fetch('/api/admin/create-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        })
+        const result = await res.json()
+        if (!res.ok) throw new Error(result.error)
         toast.success('Parlementaire créé')
       }
       setShowForm(false)

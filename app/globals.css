@@ -2,83 +2,109 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Prachason Neue Condensed';
+  src: url('/fonts/PrachasonNeueCond-Bold.woff2') format('woff2'),
+       url('/fonts/PrachasonNeueCond-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   :root {
-    --pel-blue: #1a3a6b;
-    --pel-red: #c41e3a;
-    --pel-gold: #c9a84c;
+    --pel-bleu: #04439a;
+    --pel-rouge: #b21d0b;
+    --pel-blanc: #ffffff;
+    --pel-creme: #f8f7f4;
+    --pel-bleu-light: #e8f0fb;
+    --pel-gris: #6b7280;
+    --pel-gris-light: #e5e7eb;
+    --pel-noir: #111827;
+    --font-titre: 'Prachason Neue Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    --font-corps: 'Poppins', system-ui, sans-serif;
   }
 
-  html {
-    scroll-behavior: smooth;
-  }
+  html { scroll-behavior: smooth; }
 
   body {
-    @apply bg-pel-gray-light text-gray-900 antialiased;
+    font-family: var(--font-corps);
+    color: var(--pel-noir);
+    background: var(--pel-creme);
+    @apply antialiased;
+  }
+
+  h1, h2, h3, h4, .titre {
+    font-family: var(--font-titre);
+    font-weight: 700;
+    letter-spacing: 0.02em;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-pel-blue hover:bg-pel-blue-light text-white font-semibold py-2.5 px-5 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center px-6 py-2.5 rounded font-semibold text-sm text-white transition-all duration-200 cursor-pointer;
+    background: var(--pel-rouge);
+    font-family: var(--font-corps);
   }
+  .btn-primary:hover { background: #8f1709; }
+  .btn-primary:disabled { @apply opacity-50 cursor-not-allowed; }
 
   .btn-secondary {
-    @apply bg-white hover:bg-gray-50 text-pel-blue border border-pel-blue font-semibold py-2.5 px-5 rounded-lg transition-colors duration-200;
+    @apply inline-flex items-center justify-center px-6 py-2.5 rounded font-semibold text-sm text-white transition-all duration-200 cursor-pointer;
+    background: var(--pel-bleu);
+    font-family: var(--font-corps);
   }
+  .btn-secondary:hover { background: #033278; }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center px-6 py-2.5 rounded font-semibold text-sm transition-all duration-200 cursor-pointer;
+    border: 2px solid var(--pel-bleu);
+    color: var(--pel-bleu);
+    background: transparent;
+    font-family: var(--font-corps);
+  }
+  .btn-outline:hover { background: var(--pel-bleu); color: white; }
 
   .btn-danger {
-    @apply bg-pel-red hover:bg-pel-red-light text-white font-semibold py-2.5 px-5 rounded-lg transition-colors duration-200 disabled:opacity-50;
+    @apply inline-flex items-center justify-center px-6 py-2.5 rounded font-semibold text-sm text-white transition-all duration-200;
+    background: var(--pel-rouge);
   }
 
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6;
+    @apply bg-white rounded-xl shadow-sm border p-6;
+    border-color: var(--pel-gris-light);
   }
 
   .input-field {
-    @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pel-blue focus:border-transparent transition-all duration-200 bg-white;
+    @apply w-full px-4 py-2.5 border rounded-lg text-sm transition-all duration-200 bg-white outline-none;
+    border-color: var(--pel-gris-light);
+    font-family: var(--font-corps);
+  }
+  .input-field:focus {
+    border-color: var(--pel-bleu);
+    box-shadow: 0 0 0 3px rgba(4,67,154,0.1);
   }
 
   .label {
-    @apply block text-sm font-medium text-gray-700 mb-1.5;
+    @apply block text-sm font-medium mb-1.5;
+    color: var(--pel-noir);
+    font-family: var(--font-corps);
   }
 
   .badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
 
-  .page-title {
-    @apply text-2xl font-bold text-pel-blue;
+  .section-titre {
+    font-family: var(--font-titre);
+    font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    color: var(--pel-bleu);
+    line-height: 1.1;
   }
 
-  .section-title {
-    @apply text-lg font-semibold text-gray-800;
-  }
-
-  .table-header {
-    @apply px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider;
-  }
-
-  .table-cell {
-    @apply px-4 py-3 text-sm text-gray-700;
-  }
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: #f1f5f9;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 2px;
-  }
+  .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: #f1f5f9; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
 }

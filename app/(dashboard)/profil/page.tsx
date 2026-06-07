@@ -27,20 +27,32 @@ export default function ProfilPage() {
 
   useEffect(() => {
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const { data } = await supabase
-        .from('profiles')
-        .select('*, political_groups(*)')
-        .eq('id', user.id)
-        .single()
-      if (data) {
-        setProfile(data)
-        setFirstName(data.first_name)
-        setLastName(data.last_name)
-        setBirthDate(data.birth_date ?? '')
+      try {
+        // Récupérer l'utilisateur courant
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { setLoading(false); return }
+
+        // Lire via l'API pour contourner les problèmes de session côté client
+        const res = await fetch('/api/admin/read', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            table: 'profiles',
+            select: '*, political_groups!profiles_group_id_fkey(*)',
+            filters: { id: user.id },
+          }),
+        })
+        const result = await res.json()
+        const data = result.data?.[0]
+        if (data) {
+          setProfile(data)
+          setFirstName(data.first_name)
+          setLastName(data.last_name)
+          setBirthDate(data.birth_date ?? '')
+        }
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     load()
   }, [supabase])

@@ -1,21 +1,22 @@
 'use client'
 
-import { Bell, Menu } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
+import { useMobileMenu } from './DashboardShell'
 
 interface TopBarProps {
   title: string
-  onMenuClick?: () => void
 }
 
-export default function TopBar({ title, onMenuClick }: TopBarProps) {
+export default function TopBar({ title }: TopBarProps) {
   const today = formatDate(new Date().toISOString())
+  const openMenu = useMobileMenu()
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
       <div className="flex items-center gap-4">
         <button
-          onClick={onMenuClick}
+          onClick={openMenu}
           className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
           <Menu size={20} className="text-gray-600" />

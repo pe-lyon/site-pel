@@ -1,22 +1,38 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { PoliticalGroup, Profile } from '@/types'
 import toast from 'react-hot-toast'
 import { Plus, Pencil, Trash2, X, Save, Users } from 'lucide-react'
 import TopBar from '@/components/layout/TopBar'
 
+const POLITICAL_POSITIONS = [
+  { value: '', label: '— Non défini —' },
+  { value: 'extreme_gauche', label: 'Extrême-gauche' },
+  { value: 'gauche_radicale', label: 'Gauche radicale' },
+  { value: 'gauche', label: 'Gauche' },
+  { value: 'centre_gauche', label: 'Centre-gauche' },
+  { value: 'centre', label: 'Centre' },
+  { value: 'centre_droit', label: 'Centre-droit' },
+  { value: 'droite', label: 'Droite' },
+  { value: 'droite_radicale', label: 'Droite radicale' },
+  { value: 'extreme_droite', label: 'Extrême-droite' },
+  { value: 'monarchiste', label: 'Monarchiste' },
+  { value: 'autre', label: 'Autre' },
+]
+
 interface GroupForm {
   name: string
   color: string
   president_id: string
+  political_position: string
 }
 
 const emptyForm: GroupForm = {
   name: '',
   color: '#3B82F6',
   president_id: '',
+  political_position: '',
 }
 
 const PRESET_COLORS = [
@@ -24,8 +40,18 @@ const PRESET_COLORS = [
   '#DB2777', '#0891B2', '#65A30D', '#EA580C', '#475569',
 ]
 
+async function adminRead(table: string, select = '*', order?: { col: string, asc?: boolean }) {
+  const res = await fetch('/api/admin/read', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ table, select, order }),
+  })
+  const result = await res.json()
+  if (!res.ok) throw new Error(result.error)
+  return result.data
+}
+
 export default function GroupesPage() {
-  const supabase = createClient()
   const [groups, setGroups] = useState<PoliticalGroup[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
@@ -35,17 +61,19 @@ export default function GroupesPage() {
   const [saving, setSaving] = useState(false)
 
   const fetchData = useCallback(async () => {
-    const [{ data: g }, { data: p }] = await Promise.all([
-      supabase
-        .from('political_groups')
-        .select('*, profiles(*), president:profiles!president_id(first_name, last_name)')
-        .order('name'),
-      supabase.from('profiles').select('*').order('last_name'),
-    ])
-    setGroups(g ?? [])
-    setProfiles(p ?? [])
-    setLoading(false)
-  }, [supabase])
+    try {
+      const [g, p] = await Promise.all([
+        adminRead('political_groups', '*', { col: 'name' }),
+        adminRead('profiles', '*', { col: 'last_name' }),
+      ])
+      setGroups(g ?? [])
+      setProfiles(p ?? [])
+    } catch (err: any) {
+      toast.error('Erreur de chargement : ' + err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     fetchData()
@@ -63,8 +91,20 @@ export default function GroupesPage() {
       name: group.name,
       color: group.color,
       president_id: group.president_id ?? '',
+      political_position: (group as any).political_position ?? '',
     })
     setShowForm(true)
+  }
+
+  async function adminWrite(table: string, operation: string, data: any, filters?: any) {
+    const res = await fetch('/api/admin/write', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ table, operation, data, filters }),
+    })
+    const result = await res.json()
+    if (!res.ok) throw new Error(result.error)
+    return result.data
   }
 
   async function handleSave() {
@@ -78,30 +118,21 @@ export default function GroupesPage() {
         name: form.name.trim(),
         color: form.color,
         president_id: form.president_id || null,
+        political_position: form.political_position || null,
       }
       if (editing) {
-        const { error } = await supabase
-          .from('political_groups')
-          .update(payload)
-          .eq('id', editing.id)
-        if (error) throw error
-        // Mettre à jour le rôle de l'ancien et du nouveau président de groupe
+        await adminWrite('political_groups', 'update', payload, { id: editing.id })
         if (form.president_id && form.president_id !== editing.president_id) {
           if (editing.president_id) {
-            await supabase.from('profiles').update({ role: 'parlementaire' }).eq('id', editing.president_id)
+            await adminWrite('profiles', 'update', { role: 'parlementaire' }, { id: editing.president_id })
           }
-          await supabase.from('profiles').update({ role: 'president_groupe', group_id: editing.id }).eq('id', form.president_id)
+          await adminWrite('profiles', 'update', { role: 'president_groupe', group_id: editing.id }, { id: form.president_id })
         }
         toast.success('Groupe modifié')
       } else {
-        const { data, error } = await supabase
-          .from('political_groups')
-          .insert(payload)
-          .select()
-          .single()
-        if (error) throw error
-        if (form.president_id && data) {
-          await supabase.from('profiles').update({ role: 'president_groupe', group_id: data.id }).eq('id', form.president_id)
+        const [created] = await adminWrite('political_groups', 'insert', payload)
+        if (form.president_id && created) {
+          await adminWrite('profiles', 'update', { role: 'president_groupe', group_id: created.id }, { id: form.president_id })
         }
         toast.success('Groupe créé')
       }
@@ -120,16 +151,13 @@ export default function GroupesPage() {
       : `Supprimer le groupe "${group.name}" ?`
     if (!confirm(confirmMsg)) return
 
-    // Désaffilier les membres
-    await supabase.from('profiles').update({ group_id: null, role: 'parlementaire' })
-      .eq('group_id', group.id)
-
-    const { error } = await supabase.from('political_groups').delete().eq('id', group.id)
-    if (error) {
-      toast.error('Erreur lors de la suppression')
-    } else {
+    try {
+      await adminWrite('profiles', 'update', { group_id: null, role: 'parlementaire' }, { group_id: group.id })
+      await adminWrite('political_groups', 'delete', {}, { id: group.id })
       toast.success('Groupe supprimé')
       fetchData()
+    } catch {
+      toast.error('Erreur lors de la suppression')
     }
   }
 
@@ -219,6 +247,18 @@ export default function GroupesPage() {
                   ))}
                 </select>
               </div>
+              <div className="sm:col-span-2">
+                <label className="label">Classement politique</label>
+                <select
+                  value={form.political_position}
+                  onChange={e => setForm({ ...form, political_position: e.target.value })}
+                  className="input-field"
+                >
+                  {POLITICAL_POSITIONS.map(pos => (
+                    <option key={pos.value} value={pos.value}>{pos.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="flex gap-3 mt-4">
               <button onClick={handleSave} disabled={saving} className="btn-primary flex items-center gap-2">
@@ -274,9 +314,9 @@ export default function GroupesPage() {
                   </div>
                 </div>
 
-                {group.president && (
-                  <p className="text-xs text-gray-500 mb-2">
-                    Président : {(group.president as any).first_name} {(group.president as any).last_name}
+                {(group as any).political_position && (
+                  <p className="text-xs text-gray-400 mb-1">
+                    {POLITICAL_POSITIONS.find(p => p.value === (group as any).political_position)?.label}
                   </p>
                 )}
 
