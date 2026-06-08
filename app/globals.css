@@ -444,6 +444,95 @@
   .ring-bleu:hover { box-shadow: 0 0 0 3px rgba(4,67,154,0.22); }
   .ring-rouge:hover { box-shadow: 0 0 0 3px rgba(178,29,11,0.22); }
 
+  /* — Hero CTAs — */
+  .hero-cta-rouge {
+    @apply inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl font-semibold text-base text-white;
+    background: var(--pel-rouge);
+    font-family: var(--font-corps);
+    box-shadow: 0 4px 20px rgba(178,29,11,0.50);
+    transition: transform 0.25s var(--ease-spring), box-shadow 0.25s;
+  }
+  .hero-cta-rouge:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 12px 32px rgba(178,29,11,0.60);
+  }
+
+  .hero-cta-glass {
+    @apply inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl font-semibold text-base text-white;
+    background: rgba(255,255,255,0.13);
+    border: 1.5px solid rgba(255,255,255,0.35);
+    backdrop-filter: blur(16px);
+    font-family: var(--font-corps);
+    transition: transform 0.25s var(--ease-spring), background 0.2s;
+  }
+  .hero-cta-glass:hover {
+    transform: translateY(-3px);
+    background: rgba(255,255,255,0.24);
+  }
+
+  /* — Chiffre card — */
+  .chiffre-card {
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.75);
+    box-shadow: 0 4px 24px rgba(4,67,154,0.07), inset 0 1px 0 rgba(255,255,255,0.9);
+    transition: transform 0.35s var(--ease-spring), box-shadow 0.3s, background 0.2s;
+  }
+  .chiffre-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    background: rgba(255,255,255,0.80);
+    box-shadow: 0 20px 60px rgba(4,67,154,0.14), inset 0 1px 0 white;
+  }
+
+  /* — Article card — */
+  .actu-card {
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.75);
+    box-shadow: 0 4px 24px rgba(4,67,154,0.07), inset 0 1px 0 rgba(255,255,255,0.9);
+    transition: transform 0.35s var(--ease-spring), box-shadow 0.3s, background 0.2s;
+  }
+  .actu-card:hover {
+    transform: translateY(-6px) scale(1.01);
+    background: rgba(255,255,255,0.78);
+    box-shadow: 0 20px 60px rgba(4,67,154,0.13), inset 0 1px 0 white;
+  }
+
+  /* — Event row — */
+  .event-card {
+    background: rgba(255,255,255,0.45);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.65);
+    box-shadow: 0 2px 12px rgba(4,67,154,0.05), inset 0 1px 0 rgba(255,255,255,0.8);
+    transition: transform 0.3s var(--ease-spring), box-shadow 0.3s, background 0.2s, border-color 0.2s;
+  }
+  .event-card:hover {
+    transform: translateX(10px);
+    background: rgba(255,255,255,0.75);
+    border-color: rgba(4,67,154,0.18);
+    box-shadow: 0 8px 32px rgba(4,67,154,0.10), inset 0 1px 0 white;
+  }
+
+  /* — CTA final glass button — */
+  .cta-glass-btn {
+    @apply inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold;
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.40);
+    backdrop-filter: blur(20px);
+    color: white;
+    font-family: var(--font-corps);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2);
+    transition: transform 0.3s var(--ease-spring), box-shadow 0.3s, background 0.2s;
+  }
+  .cta-glass-btn:hover {
+    transform: translateY(-4px) scale(1.02);
+    background: rgba(255,255,255,0.28);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+
   /* — Shimmer — */
   .animate-shimmer {
     background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%);
