@@ -17,7 +17,9 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <main className="pt-16 lg:pt-20 relative z-10">
         {children}
       </main>
-      <Footer />
+      <div className="relative z-10">
+        <Footer />
+      </div>
     </>
   )
 }
