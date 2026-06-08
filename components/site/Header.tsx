@@ -32,34 +32,35 @@ export default function Header() {
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-50"
-        style={{
-          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
+        className="fixed top-0 left-0 right-0 z-50 flex justify-center"
+        style={{ transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }}
       >
         {/* Barre principale */}
         <div
           style={{
-            margin: scrolled ? '0' : '12px 16px 0',
-            borderRadius: scrolled ? '0' : '20px',
+            margin: scrolled ? '0' : '10px 0 0',
+            width: scrolled ? '100%' : 'auto',
+            borderRadius: scrolled ? '0' : '999px',
             background: scrolled
               ? 'rgba(255,255,255,0.92)'
-              : 'rgba(255,255,255,0.80)',
+              : 'rgba(255,255,255,0.82)',
             backdropFilter: 'blur(24px) saturate(180%)',
             WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-            border: scrolled ? 'none' : '1px solid rgba(255,255,255,0.7)',
+            border: scrolled ? 'none' : '1px solid rgba(255,255,255,0.75)',
             borderBottom: scrolled ? '1px solid rgba(4,67,154,0.10)' : 'none',
             boxShadow: scrolled
               ? '0 2px 24px rgba(4,67,154,0.08)'
-              : '0 8px 32px rgba(4,67,154,0.12), 0 2px 8px rgba(0,0,0,0.04)',
+              : '0 8px 32px rgba(4,67,154,0.14), 0 2px 8px rgba(0,0,0,0.05)',
             transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
-          <div className="max-w-5xl mx-auto px-4 sm:px-6">
-            <div className="flex items-center justify-between h-14">
+          <div style={{ width: scrolled ? undefined : 'auto', maxWidth: scrolled ? '100%' : undefined }}
+            className={scrolled ? 'max-w-5xl mx-auto px-6' : ''}>
+            <div className="flex items-center gap-1 h-12 px-4"
+              style={{ width: scrolled ? undefined : 'auto' }}>
 
               {/* Logo */}
-              <Link href="/" className="flex items-center gap-3 flex-shrink-0 group">
+              <Link href="/" className="flex items-center gap-2 flex-shrink-0 group mr-3">
                 <div style={{
                   transition: 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)',
                 }} className="group-hover:scale-110">
@@ -120,7 +121,7 @@ export default function Header() {
               </nav>
 
               {/* CTA + Mobile toggle */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 ml-3">
                 <Link
                   href="/seance"
                   className="hidden sm:inline-flex items-center gap-2 text-sm font-semibold text-white px-4 py-2 rounded-xl"
