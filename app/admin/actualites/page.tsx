@@ -48,7 +48,9 @@ export default function AdminActualitesPage() {
     const data = {
       titre: form.titre, slug, extrait: form.extrait || null,
       contenu: form.contenu_texte ? { texte: form.contenu_texte } : null,
-      statut: form.statut, categorie: form.categorie || null, auteur: form.auteur || null,
+      statut: form.statut,
+      categorie: form.categorie || null,
+      auteur: form.auteur || null,
       publie_le: form.statut === 'publie' ? new Date().toISOString() : null,
       updated_at: new Date().toISOString(),
     }

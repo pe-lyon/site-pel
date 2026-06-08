@@ -29,7 +29,7 @@ export async function getEvenements(limit?: number) {
 
 export async function getActualites(limit?: number, statut = 'publie') {
   const supabase = await createClient()
-  let q = supabase.from('actualites').select('*, actualites_categories(nom, couleur)').eq('statut', statut).order('publie_le', { ascending: false })
+  let q = supabase.from('actualites').select('*').eq('statut', statut).order('publie_le', { ascending: false })
   if (limit) q = q.limit(limit)
   const { data } = await q
   return data ?? []

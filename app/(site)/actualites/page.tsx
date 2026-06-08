@@ -30,7 +30,7 @@ export default async function ActualitesPage() {
                     <span style={{ fontFamily: 'var(--font-titre)', fontSize: '3rem', color: 'var(--pel-bleu)', opacity: 0.3 }}>PEL</span>
                   </div>
                   <div className="p-6">
-                    {a.categorie && <span className="badge text-white mb-3 inline-block text-xs" style={{ background: a.actualites_categories?.couleur ?? 'var(--pel-bleu)', fontFamily: 'var(--font-corps)' }}>{a.categorie}</span>}
+                    {a.categorie && <span className="badge text-white mb-3 inline-block text-xs" style={{ background: 'var(--pel-bleu)', fontFamily: 'var(--font-corps)' }}>{a.categorie}</span>}
                     <h3 className="font-bold text-gray-900 mb-2 group-hover:text-[#04439a] transition-colors leading-snug" style={{ fontFamily: 'var(--font-corps)' }}>{a.titre}</h3>
                     {a.extrait && <p className="text-sm text-gray-500 mb-4 leading-relaxed line-clamp-3" style={{ fontFamily: 'var(--font-corps)' }}>{a.extrait}</p>}
                     {a.auteur && <p className="text-xs text-gray-400 mb-1" style={{ fontFamily: 'var(--font-corps)' }}>Par {a.auteur}</p>}
