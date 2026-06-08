@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronRight,
   Calendar,
+  PenLine,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { UserRole } from '@/types'
@@ -56,6 +57,8 @@ interface SidebarProps {
   lastName: string
 }
 
+const CONTRIBUTEUR_ROLES: string[] = ['contributeur_journalisme', 'contributeur_agenda', 'contributeur_general']
+
 export default function Sidebar({ role, firstName, lastName }: SidebarProps) {
   const pathname = usePathname()
   const [adminOpen, setAdminOpen] = useState(pathname.startsWith('/administration'))
@@ -63,6 +66,7 @@ export default function Sidebar({ role, firstName, lastName }: SidebarProps) {
   const supabase = createClient()
 
   const isPresident = role === 'president_seance'
+  const isContributeur = CONTRIBUTEUR_ROLES.includes(role as string)
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -137,6 +141,24 @@ export default function Sidebar({ role, firstName, lastName }: SidebarProps) {
             </Link>
           )
         })}
+
+        {/* Section Contribuer (contributeurs uniquement) */}
+        {isContributeur && (
+          <div className="pt-2">
+            <p className="px-3 py-2 text-xs font-semibold text-blue-300 uppercase tracking-wider">Contributions</p>
+            <Link
+              href="/contribuer"
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150',
+                pathname === '/contribuer' ? 'text-white' : 'text-blue-100 hover:text-white'
+              )}
+              style={pathname === '/contribuer' ? { background: 'rgba(255,255,255,0.18)', borderLeft: '3px solid white' } : undefined}
+            >
+              <PenLine size={18} />
+              Soumettre une contribution
+            </Link>
+          </div>
+        )}
 
         {/* Section Administration (président uniquement) */}
         {isPresident && (

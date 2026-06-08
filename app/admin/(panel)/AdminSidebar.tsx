@@ -2,7 +2,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Calendar, Newspaper, Info, Users, Settings, LogOut, Globe } from 'lucide-react'
+import { LayoutDashboard, Calendar, Newspaper, Info, Users, Settings, LogOut, Globe, UserPlus, ClipboardCheck } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 
@@ -12,6 +13,8 @@ const NAV = [
   { href: '/admin/agenda', label: 'Agenda', icon: Calendar },
   { href: '/admin/presentation', label: 'Notre institution', icon: Info },
   { href: '/admin/bureau', label: 'Bureau', icon: Users },
+  { href: '/admin/profils', label: 'Création de profil', icon: UserPlus },
+  { href: '/admin/contributions', label: 'Contributions', icon: ClipboardCheck, badge: true },
   { href: '/admin/parametres', label: 'Paramètres', icon: Settings },
 ]
 
@@ -19,6 +22,16 @@ export default function AdminSidebar({ firstName, lastName }: { firstName: strin
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [pendingCount, setPendingCount] = useState(0)
+
+  useEffect(() => {
+    async function fetchPending() {
+      const { count: countActu } = await supabase.from('actualites').select('id', { count: 'exact', head: true }).eq('statut', 'en_attente_validation')
+      const { count: countEven } = await supabase.from('evenements').select('id', { count: 'exact', head: true }).eq('statut', 'en_attente_validation')
+      setPendingCount((countActu ?? 0) + (countEven ?? 0))
+    }
+    fetchPending()
+  }, [])
 
   async function logout() {
     await supabase.auth.signOut()
@@ -28,7 +41,14 @@ export default function AdminSidebar({ firstName, lastName }: { firstName: strin
   }
 
   return (
-    <aside className="w-60 min-h-screen flex flex-col shadow-xl flex-shrink-0" style={{ background: 'var(--pel-bleu)' }}>
+    <aside style={{
+      background: 'rgba(4,67,154,0.88)',
+      backdropFilter: 'blur(24px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+      borderRight: '1px solid rgba(255,255,255,0.12)',
+      boxShadow: '4px 0 32px rgba(4,67,154,0.15)',
+      width: '16rem', minHeight: '100vh', display: 'flex', flexDirection: 'column',
+    }}>
       {/* Logo */}
       <div className="px-5 py-5 border-b border-white/10">
         <Link href="/admin" className="flex items-center gap-3">
@@ -64,7 +84,12 @@ export default function AdminSidebar({ firstName, lastName }: { firstName: strin
               style={{ background: active ? 'rgba(255,255,255,0.15)' : 'transparent', color: active ? 'white' : 'rgba(255,255,255,0.65)' }}
             >
               <Icon size={17} />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {item.badge && pendingCount > 0 && (
+                <span style={{ background: '#b21d0b', color: 'white', borderRadius: '9999px', fontSize: '11px', fontWeight: 700, minWidth: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>
+                  {pendingCount}
+                </span>
+              )}
             </Link>
           )
         })}
