@@ -49,9 +49,13 @@ export default function DashboardPage() {
       setActiveSession(sessions?.[0] ?? null)
       setRecentBills(recent.slice(0, 5))
 
-      // Profil courant
-      const myProfile = await adminRead('profiles', '*, political_groups(*)', undefined, { id: user.id })
-      setProfile(myProfile?.[0] ?? null)
+      // Profil courant — directement via le client Supabase (plus fiable)
+      const { data: myProfile } = await supabase
+        .from('profiles')
+        .select('*, political_groups(*)')
+        .eq('id', user.id)
+        .single()
+      setProfile(myProfile ?? null)
 
       setLoading(false)
     }
@@ -176,41 +180,47 @@ export default function DashboardPage() {
           {/* Ma situation */}
           <div className="card">
             <h2 className="section-title mb-4">Ma situation</h2>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-500">Nom</span>
-                <span className="text-sm font-semibold text-gray-800">
-                  {profile?.first_name} {profile?.last_name}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-500">Rôle</span>
-                <span className="text-sm font-semibold text-gray-800 capitalize">
-                  {profile?.role?.replace(/_/g, ' ')}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-500">Groupe</span>
-                {profile?.political_groups ? (
-                  <span
-                    className="text-sm font-semibold flex items-center gap-1.5"
-                    style={{ color: profile.political_groups.color }}
-                  >
-                    <span
-                      className="w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: profile.political_groups.color }}
-                    />
-                    {profile.political_groups.name}
+            {!profile ? (
+              <p className="text-gray-400 text-sm text-center py-8">Profil introuvable — contactez l&apos;administration</p>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-500">Nom</span>
+                  <span className="text-sm font-semibold text-gray-800">
+                    {profile.first_name} {profile.last_name}
                   </span>
-                ) : (
-                  <span className="text-sm text-gray-400">Non affilié</span>
-                )}
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-500">Identifiant</span>
+                  <span className="text-sm font-mono font-semibold text-gray-800">
+                    {profile.email?.replace('@assemblee-pel.fr', '')}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-500">Rôle</span>
+                  <span className="text-sm font-semibold text-gray-800">
+                    {ROLE_LABELS[profile.role as keyof typeof ROLE_LABELS] ?? profile.role}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-500">Groupe</span>
+                  {profile.political_groups ? (
+                    <span
+                      className="text-sm font-semibold flex items-center gap-1.5"
+                      style={{ color: profile.political_groups.color }}
+                    >
+                      <span
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: profile.political_groups.color }}
+                      />
+                      {profile.political_groups.name}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-gray-400">Non affilié</span>
+                  )}
+                </div>
               </div>
-              <div className="flex justify-between items-center py-2">
-                <span className="text-sm text-gray-500">Email</span>
-                <span className="text-sm font-semibold text-gray-800">{profile?.email}</span>
-              </div>
-            </div>
+            )}
             <Link href="/profil" className="btn-secondary w-full mt-4 text-center block text-sm">
               Modifier mon profil
             </Link>
