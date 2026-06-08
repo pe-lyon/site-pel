@@ -16,11 +16,13 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
+
+  if (profileError) console.error('[Layout] Erreur profil:', profileError.message)
 
   if (!profile) {
     redirect('/login')
