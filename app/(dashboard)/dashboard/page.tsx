@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Users, FileText, Vote, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { formatDateTime, formatDate } from '@/lib/utils'
-import { STATUS_LABELS, STATUS_COLORS } from '@/types'
+import { STATUS_LABELS, STATUS_COLORS, ROLE_LABELS } from '@/types'
 import TopBar from '@/components/layout/TopBar'
 import { createClient } from '@/lib/supabase/client'
 
