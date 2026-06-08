@@ -72,7 +72,13 @@ export default function Sidebar({ role, firstName, lastName }: SidebarProps) {
   }
 
   return (
-    <aside className="w-64 bg-pel-blue min-h-screen flex flex-col shadow-xl">
+    <aside className="w-64 min-h-screen flex flex-col" style={{
+      background: 'rgba(4,67,154,0.88)',
+      backdropFilter: 'blur(24px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+      borderRight: '1px solid rgba(255,255,255,0.12)',
+      boxShadow: '4px 0 32px rgba(4,67,154,0.15)',
+    }}>
       {/* Logo */}
       <div className="px-6 py-5 border-b border-pel-blue-light/40">
         <Link href="/dashboard" className="flex items-center gap-3">
@@ -118,9 +124,13 @@ export default function Sidebar({ role, firstName, lastName }: SidebarProps) {
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150',
                 active
-                  ? 'bg-white text-pel-blue'
-                  : 'text-blue-100 hover:bg-pel-blue-light hover:text-white'
+                  ? 'text-white'
+                  : 'text-blue-100 hover:text-white'
               )}
+              style={active ? {
+                background: 'rgba(255,255,255,0.18)',
+                borderLeft: '3px solid white',
+              } : undefined}
             >
               <Icon size={18} />
               {item.label}
@@ -151,9 +161,13 @@ export default function Sidebar({ role, firstName, lastName }: SidebarProps) {
                       className={cn(
                         'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150',
                         active
-                          ? 'bg-white text-pel-blue'
-                          : 'text-blue-100 hover:bg-pel-blue-light hover:text-white'
+                          ? 'text-white'
+                          : 'text-blue-100 hover:text-white'
                       )}
+                      style={active ? {
+                        background: 'rgba(255,255,255,0.18)',
+                        borderLeft: '3px solid white',
+                      } : undefined}
                     >
                       <Icon size={18} />
                       {item.label}

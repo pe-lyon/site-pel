@@ -13,7 +13,13 @@ export default function TopBar({ title }: TopBarProps) {
   const openMenu = useMobileMenu()
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+    <header className="px-6 py-4 flex items-center justify-between sticky top-0 z-10" style={{
+      background: 'rgba(255,255,255,0.65)',
+      backdropFilter: 'blur(20px) saturate(160%)',
+      WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+      borderBottom: '1px solid rgba(255,255,255,0.70)',
+      boxShadow: '0 2px 16px rgba(4,67,154,0.06)',
+    }}>
       <div className="flex items-center gap-4">
         <button
           onClick={openMenu}

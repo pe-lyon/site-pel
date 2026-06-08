@@ -16,9 +16,19 @@ export default function DashboardShell({ role, firstName, lastName, children }: 
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen bg-pel-gray-light">
+    <div className="flex min-h-screen relative" style={{ background: '#eef2ff' }}>
+      {/* Fond orbs fixe */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none',
+        background: 'radial-gradient(ellipse 80% 60% at 10% 5%, rgba(4,67,154,0.10) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 90% 95%, rgba(178,29,11,0.07) 0%, transparent 60%), #eef2ff'
+      }} aria-hidden="true">
+        <div className="animate-orb" style={{ position: 'absolute', width: 600, height: 600, top: '-10%', left: '5%', borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%', filter: 'blur(70px)', background: 'radial-gradient(circle, rgba(4,67,154,0.15) 0%, transparent 70%)' }} />
+        <div className="animate-orb-reverse" style={{ position: 'absolute', width: 500, height: 500, bottom: '5%', right: '-5%', borderRadius: '40% 60% 70% 30% / 40% 70% 30% 60%', filter: 'blur(60px)', background: 'radial-gradient(circle, rgba(178,29,11,0.10) 0%, transparent 70%)' }} />
+        <div className="animate-float-slow" style={{ position: 'absolute', width: 400, height: 400, top: '40%', left: '40%', borderRadius: '50%', filter: 'blur(80px)', background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)' }} />
+      </div>
+
       {/* Sidebar desktop */}
-      <div className="hidden lg:block flex-shrink-0">
+      <div className="hidden lg:block flex-shrink-0 relative z-20">
         <Sidebar role={role} firstName={firstName} lastName={lastName} />
       </div>
 
@@ -42,7 +52,7 @@ export default function DashboardShell({ role, firstName, lastName, children }: 
       )}
 
       {/* Contenu principal */}
-      <main className="flex-1 overflow-auto min-w-0">
+      <main className="flex-1 overflow-auto min-w-0 relative z-10">
         {/* Injecter onMenuClick dans les enfants via contexte */}
         <MobileMenuContext.Provider value={() => setMobileOpen(true)}>
           {children}
