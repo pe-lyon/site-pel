@@ -30,35 +30,33 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function load() {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { window.location.href = '/login'; return }
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { window.location.href = '/login'; return }
 
-      const [profiles, groups, bills, sessions, recent] = await Promise.all([
-        adminRead('profiles', '*'),
-        adminRead('political_groups', '*'),
-        adminRead('bills', 'status'),
-        adminRead('vote_sessions', '*, bills(title, number)', { col: 'opened_at', asc: false }, { status: 'ouvert' }),
-        adminRead('bills', '*, profiles(first_name, last_name)', { col: 'created_at', asc: false }),
-      ])
+        // Chargements indépendants avec fallback sur []
+        const [profiles, groups, bills, sessions, recent, profileRes] = await Promise.all([
+          adminRead('profiles', 'id').catch(() => []),
+          adminRead('political_groups', 'id').catch(() => []),
+          adminRead('bills', 'status').catch(() => []),
+          adminRead('vote_sessions', 'id, title, opened_at, bill_id, bills(title, number)', { col: 'opened_at', asc: false }, { status: 'ouvert' }).catch(() => []),
+          adminRead('bills', 'id, number, title, status, created_at', { col: 'created_at', asc: false }).catch(() => []),
+          adminRead('profiles', '*, political_groups!profiles_group_id_fkey(*)', undefined, { id: user.id }).catch(() => []),
+        ])
 
-      setTotalParlementaires(profiles.length)
-      setTotalGroupes(groups.length)
-      setBillsEnCours(bills.filter((b: any) => b.status === 'en_discussion').length)
-      setBillsVote(bills.filter((b: any) => b.status === 'soumise_au_vote').length)
-      setActiveSession(sessions?.[0] ?? null)
-      setRecentBills(recent.slice(0, 5))
-
-      // Profil courant — via l'API route (service role, bypass RLS)
-      const profileRes = await adminRead(
-        'profiles',
-        '*, political_groups!profiles_group_id_fkey(*)',
-        undefined,
-        { id: user.id }
-      )
-      setProfile(profileRes?.[0] ?? null)
-
-      setLoading(false)
+        setTotalParlementaires(Array.isArray(profiles) ? profiles.length : 0)
+        setTotalGroupes(Array.isArray(groups) ? groups.length : 0)
+        setBillsEnCours(Array.isArray(bills) ? bills.filter((b: any) => b.status === 'en_discussion').length : 0)
+        setBillsVote(Array.isArray(bills) ? bills.filter((b: any) => b.status === 'soumise_au_vote').length : 0)
+        setActiveSession(Array.isArray(sessions) ? (sessions[0] ?? null) : null)
+        setRecentBills(Array.isArray(recent) ? recent.slice(0, 5) : [])
+        setProfile(Array.isArray(profileRes) ? (profileRes[0] ?? null) : null)
+      } catch (err) {
+        console.error('Erreur dashboard:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [])
