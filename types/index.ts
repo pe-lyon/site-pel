@@ -37,6 +37,7 @@ export interface Bill {
   full_text: string | null
   author_id: string | null
   status: BillStatus
+  type?: 'projet_de_loi' | 'proposition_de_loi'
   created_at: string
   updated_at: string
   profiles?: Profile
@@ -110,6 +111,11 @@ export const STATUS_LABELS: Record<BillStatus, string> = {
   adoptee: 'Adoptée',
   rejetee: 'Rejetée',
   archivee: 'Archivée',
+}
+
+export const TYPE_LABELS: Record<string, string> = {
+  projet_de_loi: 'Projet de loi',
+  proposition_de_loi: 'Proposition de loi',
 }
 
 export const STATUS_COLORS: Record<BillStatus, string> = {
