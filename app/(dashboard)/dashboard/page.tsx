@@ -49,14 +49,14 @@ export default function DashboardPage() {
       setActiveSession(sessions?.[0] ?? null)
       setRecentBills(recent.slice(0, 5))
 
-      // Profil courant — directement via le client Supabase (plus fiable)
-      const { data: myProfile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*, political_groups!profiles_group_id_fkey(*)')
-        .eq('id', user.id)
-        .single()
-      if (profileError) console.error('Profil error:', profileError.message)
-      setProfile(myProfile ?? null)
+      // Profil courant — via l'API route (service role, bypass RLS)
+      const profileRes = await adminRead(
+        'profiles',
+        '*, political_groups!profiles_group_id_fkey(*)',
+        undefined,
+        { id: user.id }
+      )
+      setProfile(profileRes?.[0] ?? null)
 
       setLoading(false)
     }
