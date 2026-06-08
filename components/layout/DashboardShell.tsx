@@ -4,6 +4,8 @@ import { useState } from 'react'
 import Sidebar from './Sidebar'
 import { UserRole } from '@/types'
 import { X } from 'lucide-react'
+import FloatingGroupeChat from '@/components/FloatingGroupeChat'
+import NotificationManager from '@/components/NotificationManager'
 
 interface Props {
   role: UserRole
@@ -58,6 +60,10 @@ export default function DashboardShell({ role, firstName, lastName, children }: 
           {children}
         </MobileMenuContext.Provider>
       </main>
+
+      {/* Chat flottant groupe */}
+      <FloatingGroupeChat />
+      <NotificationManager />
     </div>
   )
 }

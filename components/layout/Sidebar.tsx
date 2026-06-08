@@ -19,10 +19,12 @@ import {
   ChevronRight,
   Calendar,
   PenLine,
+  Flag,
+  ClipboardList,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { UserRole } from '@/types'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
@@ -38,7 +40,9 @@ const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
   { href: '/hemicycle', label: 'Hémicycle', icon: Building2 },
   { href: '/propositions', label: 'Propositions de loi', icon: FileText },
+  { href: '/mes-votes', label: 'Mes votes', icon: ClipboardList },
   { href: '/profil', label: 'Mon profil', icon: User },
+  { href: '/groupe', label: 'Mon Groupe', icon: Flag },
 ]
 
 const adminItems: NavItem[] = [
@@ -67,6 +71,28 @@ export default function Sidebar({ role, firstName, lastName }: SidebarProps) {
 
   const isPresident = role === 'president_seance'
   const isContributeur = CONTRIBUTEUR_ROLES.includes(role as string)
+
+  const [openSession, setOpenSession] = useState<{ id: string; title: string } | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    async function fetchOpenSession() {
+      try {
+        const { data } = await supabase
+          .from('vote_sessions')
+          .select('id, title')
+          .eq('status', 'ouvert')
+          .maybeSingle()
+        setOpenSession(data ?? null)
+      } catch { /* ignore */ }
+    }
+    fetchOpenSession()
+    const channel = supabase
+      .channel('sidebar-vote-sessions')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'vote_sessions' }, fetchOpenSession)
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -116,17 +142,32 @@ export default function Sidebar({ role, firstName, lastName }: SidebarProps) {
         </div>
       </div>
 
+      {/* Bannière vote en cours */}
+      {openSession && (
+        <div className="px-3 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+          <Link
+            href={`/scrutin/${openSession.id}`}
+            className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold text-white"
+            style={{ background: 'rgba(178,29,11,0.85)', backdropFilter: 'blur(8px)' }}
+          >
+            <span className="w-2 h-2 rounded-full bg-red-300 animate-pulse flex-shrink-0" />
+            <span className="truncate">🔴 Vote en cours — {openSession.title}</span>
+          </Link>
+        </div>
+      )}
+
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin">
         {navItems.map((item) => {
           const Icon = item.icon
           const active = pathname === item.href
+          const isDashboard = item.href === '/dashboard'
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150',
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 relative',
                 active
                   ? 'text-white'
                   : 'text-blue-100 hover:text-white'
@@ -138,6 +179,9 @@ export default function Sidebar({ role, firstName, lastName }: SidebarProps) {
             >
               <Icon size={18} />
               {item.label}
+              {isDashboard && openSession && (
+                <span className="ml-auto w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse" />
+              )}
             </Link>
           )
         })}

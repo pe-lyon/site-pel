@@ -21,6 +21,7 @@ export default function AdminScrutinsPage() {
   const [duration, setDuration] = useState('')
   const [saving, setSaving] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const [typeScrutin, setTypeScrutin] = useState<'public' | 'secret'>('public')
 
   const fetchData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -47,13 +48,24 @@ export default function AdminScrutinsPage() {
     if (!title.trim()) { toast.error('Le titre est obligatoire'); return }
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
-    const { data, error } = await supabase.from('vote_sessions').insert({
+    let insertData: Record<string, unknown> = {
       title: title.trim(),
       bill_id: billId || null,
       duration_minutes: duration ? parseInt(duration) : null,
       opened_by: user?.id,
       status: 'ouvert',
+    }
+    // Tenter d'inclure type_scrutin — fallback si colonne inexistante
+    let { data, error } = await supabase.from('vote_sessions').insert({
+      ...insertData,
+      type_scrutin: typeScrutin,
     }).select().single()
+    if (error && error.message?.includes('type_scrutin')) {
+      // Colonne pas encore migrée : insert sans ce champ
+      const res = await supabase.from('vote_sessions').insert(insertData).select().single()
+      data = res.data
+      error = res.error
+    }
 
     if (error) {
       toast.error('Erreur lors de l\'ouverture du scrutin')
@@ -68,6 +80,7 @@ export default function AdminScrutinsPage() {
       setTitle('')
       setBillId('')
       setDuration('')
+      setTypeScrutin('public')
       fetchData()
     }
     setSaving(false)
@@ -173,6 +186,25 @@ export default function AdminScrutinsPage() {
                     <option key={b.id} value={b.id}>{b.number} — {b.title}</option>
                   ))}
                 </select>
+              </div>
+              <div>
+                <label className="label">Type de scrutin</label>
+                <div className="flex gap-3 mt-1">
+                  <button
+                    type="button"
+                    onClick={() => setTypeScrutin('public')}
+                    className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-medium border-2 transition-all ${typeScrutin === 'public' ? 'border-green-500 bg-green-50 text-green-800' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
+                  >
+                    🔓 Vote public (nominatif)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTypeScrutin('secret')}
+                    className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-medium border-2 transition-all ${typeScrutin === 'secret' ? 'border-pel-blue bg-blue-50 text-pel-blue' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
+                  >
+                    🔒 Vote secret (anonyme)
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="label">Durée limite (minutes, optionnel)</label>

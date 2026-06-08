@@ -2,7 +2,15 @@
  * Fonctions d'accès aux données CMS depuis les pages du site vitrine.
  * Utilise un client public (anon) — pas de cookies, compatible ISR/prerendering.
  */
-import { createPublicClient } from '@/lib/supabase/public'
+import { createClient } from '@supabase/supabase-js'
+
+const adminClient = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+// Compat — redirige vers adminClient
+function createPublicClient() { return adminClient }
 
 export async function getSetting(key: string): Promise<string> {
   try {

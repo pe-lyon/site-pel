@@ -4,11 +4,12 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
-import { User, Lock, Save } from 'lucide-react'
+import { User, Lock, Save, Camera } from 'lucide-react'
 import { Profile } from '@/types'
 import { getInitials } from '@/lib/utils'
 import TopBar from '@/components/layout/TopBar'
 import { ROLE_LABELS } from '@/types'
+import { useRef } from 'react'
 
 export default function ProfilPage() {
   const supabase = createClient()
@@ -24,6 +25,9 @@ export default function ProfilPage() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [changingPassword, setChangingPassword] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [canUpload, setCanUpload] = useState(true)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     async function load() {
@@ -73,6 +77,45 @@ export default function ProfilPage() {
     setSaving(false)
   }
 
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !profile) return
+    setUploadingAvatar(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const path = `${user.id}.jpg`
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true, contentType: file.type })
+
+      if (uploadError) {
+        if (uploadError.message?.includes('Bucket not found') || uploadError.message?.includes('bucket')) {
+          setCanUpload(false)
+          toast.error('Le bucket d\'avatars n\'existe pas encore.')
+          return
+        }
+        throw uploadError
+      }
+
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id)
+      if (updateError) throw updateError
+
+      setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : prev)
+      toast.success('Photo de profil mise à jour !')
+    } catch (err: unknown) {
+      toast.error('Erreur : ' + (err instanceof Error ? err.message : String(err)))
+      setCanUpload(false)
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault()
     if (newPassword !== confirmPassword) {
@@ -113,11 +156,43 @@ export default function ProfilPage() {
       <div className="p-6 max-w-2xl space-y-6">
         {/* Avatar et identité */}
         <div className="card flex items-center gap-5">
-          <div
-            className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0"
-            style={{ backgroundColor: profile?.political_groups?.color ?? '#1a3a6b' }}
-          >
-            {profile ? getInitials(profile.first_name, profile.last_name) : '?'}
+          <div className="relative flex-shrink-0">
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl overflow-hidden"
+              style={{ backgroundColor: profile?.political_groups?.color ?? '#1a3a6b' }}
+            >
+              {(profile as any)?.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={(profile as any).avatar_url}
+                  alt="Avatar"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                profile ? getInitials(profile.first_name, profile.last_name) : '?'
+              )}
+            </div>
+            {canUpload && (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-pel-blue text-white flex items-center justify-center hover:opacity-80 transition-opacity"
+                title="Changer ma photo"
+              >
+                {uploadingAvatar ? (
+                  <div className="w-3 h-3 border border-white/50 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Camera size={12} />
+                )}
+              </button>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleAvatarUpload}
+            />
           </div>
           <div>
             <h2 className="text-xl font-bold text-gray-900">

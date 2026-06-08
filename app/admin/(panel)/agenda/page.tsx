@@ -3,13 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Plus, Pencil, Trash2, X, Save } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const EMPTY = { titre: '', date: '', heure: '', lieu: '', type: 'evenement', description: '', lien_externe: '' }
-const TYPES = [
-  { value: 'seance', label: 'Séance plénière' },
-  { value: 'reunion', label: 'Réunion' },
-  { value: 'ceremonie', label: 'Cérémonie' },
-  { value: 'evenement', label: 'Événement' },
-]
+const EMPTY = { titre: '', date: '', heure: '', lieu: '', type: '', description: '', lien_externe: '' }
 
 async function apiRead(table: string, select = '*', order?: { col: string }) {
   const r = await fetch('/api/admin/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ table, select, order }) })
@@ -88,7 +82,7 @@ export default function AdminAgendaPage() {
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-900" style={{ fontFamily: 'var(--font-corps)' }}>{e.titre}</p>
                 <p className="text-xs text-gray-500 mt-0.5" style={{ fontFamily: 'var(--font-corps)' }}>
-                  {e.heure && `${e.heure.slice(0, 5)} · `}{e.lieu ?? ''} · <span className="capitalize">{TYPES.find(t => t.value === e.type)?.label ?? e.type}</span>
+                  {e.heure && `${e.heure.slice(0, 5)} · `}{e.lieu ?? ''}{e.type ? ` · ${e.type}` : ''}
                 </p>
                 {e.description && <p className="text-xs text-gray-400 mt-1 line-clamp-1" style={{ fontFamily: 'var(--font-corps)' }}>{e.description}</p>}
               </div>
@@ -131,10 +125,26 @@ export default function AdminAgendaPage() {
                 <input className="input-field" value={form.lieu} onChange={e => F('lieu', e.target.value)} placeholder="Amphi Lacassagne, Université Lyon 3" />
               </div>
               <div>
-                <label className="label">Type</label>
-                <select className="input-field" value={form.type} onChange={e => F('type', e.target.value)}>
-                  {TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
+                <label className="label">Type / Catégorie</label>
+                <input
+                  className="input-field"
+                  list="event-types"
+                  value={form.type}
+                  onChange={e => F('type', e.target.value)}
+                  placeholder="Séance, Réunion, Cérémonie..."
+                />
+                <datalist id="event-types">
+                  <option value="Séance plénière" />
+                  <option value="Réunion" />
+                  <option value="Cérémonie" />
+                  <option value="Événement" />
+                  <option value="Commission" />
+                  <option value="Atelier" />
+                  {[...new Set(events.map((e: any) => e.type).filter(Boolean))].map((t: any) => (
+                    <option key={t} value={t} />
+                  ))}
+                </datalist>
+                <p className="text-xs text-gray-400 mt-1">Tape librement ou choisis dans la liste</p>
               </div>
               <div>
                 <label className="label">Description</label>

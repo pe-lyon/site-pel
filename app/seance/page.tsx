@@ -4,6 +4,10 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { getInitials } from '@/lib/utils'
+import AnnuaireParlementaires from '@/components/site/AnnuaireParlementaires'
+import SeanceStats from '@/components/site/SeanceStats'
+import ClassementGroupes from '@/components/site/ClassementGroupes'
+import OrdreduJour from '@/components/site/OrdreduJour'
 
 const POSITION_ORDER: Record<string, number> = {
   extreme_gauche: 0, gauche_radicale: 1, gauche: 2, centre_gauche: 3,
@@ -52,74 +56,113 @@ export default function SeancePage() {
   const [groups, setGroups] = useState<any[]>([])
   const [selectedSeat, setSelectedSeat] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [closedSessions, setClosedSessions] = useState<any[]>([])
+  const [allBills, setAllBills] = useState<any[]>([])
 
   const fetchAll = useCallback(async () => {
-    const supabase = createClient()
+    try {
+      const supabase = createClient()
 
-    const { data: seances } = await supabase
-      .from('seances').select('*')
-      .in('statut', ['en_cours', 'planifiee'])
-      .order('date', { ascending: false }).limit(1)
-    const seanceActive = seances?.[0] ?? null
-    setSeance(seanceActive)
+      // Cherche d'abord une séance en cours ou en préparation, sinon la plus récente
+      const { data: seancesActives } = await supabase
+        .from('seances').select('*')
+        .in('statut', ['en_cours', 'preparation', 'planifiee'])
+        .order('date', { ascending: true }).limit(1)
 
-    if (seanceActive) {
-      const { data: odj } = await supabase.from('ordre_du_jour')
-        .select('*').eq('seance_id', seanceActive.id).eq('public', true).order('ordre')
-      setOrdreJour(odj ?? [])
-    }
+      let seanceActive = seancesActives?.[0] ?? null
 
-    const { data: sessions } = await supabase
-      .from('vote_sessions')
-      .select('*, bills(id, title, description, full_text, author_id)')
-      .eq('status', 'open').limit(1)
-
-    if (sessions?.[0]) {
-      const session = sessions[0]
-      setVoteSession(session)
-      const bill = session.bills
-      setBillEnCours(bill)
-      if (bill?.author_id) {
-        const { data: author } = await supabase.from('profiles')
-          .select('first_name, last_name, political_groups!profiles_group_id_fkey(name, color)')
-          .eq('id', bill.author_id).single()
-        setRapporteur(author)
+      if (!seanceActive) {
+        const { data: derniereSeance } = await supabase
+          .from('seances').select('*')
+          .order('date', { ascending: false }).limit(1)
+        seanceActive = derniereSeance?.[0] ?? null
       }
-      const { data: votes } = await supabase.from('votes').select('vote').eq('session_id', session.id)
-      if (votes) {
-        setResultats({
-          pour: votes.filter((v: any) => v.vote === 'pour').length,
-          contre: votes.filter((v: any) => v.vote === 'contre').length,
-          abstention: votes.filter((v: any) => v.vote === 'abstention').length,
-        })
+
+      setSeance(seanceActive)
+
+      if (seanceActive) {
+        const { data: odj } = await supabase.from('ordre_du_jour')
+          .select('*').eq('seance_id', seanceActive.id).eq('public', true).order('ordre')
+        setOrdreJour(odj ?? [])
       }
-    } else {
-      const { data: billsEn } = await supabase.from('bills')
-        .select('id, title, description, full_text, author_id')
-        .eq('status', 'en_discussion').order('updated_at', { ascending: false }).limit(1)
-      if (billsEn?.[0]) {
-        setBillEnCours(billsEn[0])
-        if (billsEn[0].author_id) {
+
+      const { data: sessions } = await supabase
+        .from('vote_sessions')
+        .select('*, bills(id, title, description, full_text, author_id)')
+        .eq('status', 'ouvert').limit(1)
+
+      if (sessions?.[0]) {
+        const session = sessions[0]
+        setVoteSession(session)
+        const bill = session.bills
+        setBillEnCours(bill)
+        if (bill?.author_id) {
           const { data: author } = await supabase.from('profiles')
             .select('first_name, last_name, political_groups!profiles_group_id_fkey(name, color)')
-            .eq('id', billsEn[0].author_id).single()
+            .eq('id', bill.author_id).single()
           setRapporteur(author)
         }
+        const { data: votes } = await supabase.from('votes').select('vote_value').eq('session_id', session.id)
+        if (votes) {
+          setResultats({
+            pour: votes.filter((v: any) => v.vote_value === 'pour').length,
+            contre: votes.filter((v: any) => v.vote_value === 'contre').length,
+            abstention: votes.filter((v: any) => v.vote_value === 'abstention').length,
+          })
+        }
       } else {
-        setBillEnCours(null); setRapporteur(null)
+        const { data: billsEn } = await supabase.from('bills')
+          .select('id, title, description, full_text, author_id')
+          .eq('status', 'en_discussion').order('updated_at', { ascending: false }).limit(1)
+        if (billsEn?.[0]) {
+          setBillEnCours(billsEn[0])
+          if (billsEn[0].author_id) {
+            const { data: author } = await supabase.from('profiles')
+              .select('first_name, last_name, political_groups!profiles_group_id_fkey(name, color)')
+              .eq('id', billsEn[0].author_id).single()
+            setRapporteur(author)
+          }
+        } else {
+          setBillEnCours(null); setRapporteur(null)
+        }
+        setVoteSession(null)
+        setResultats({ pour: 0, contre: 0, abstention: 0 })
       }
-      setVoteSession(null)
-      setResultats({ pour: 0, contre: 0, abstention: 0 })
+
+      const [profsRes, grpsRes, billsRes] = await Promise.all([
+        supabase.from('profiles').select('*, political_groups!profiles_group_id_fkey(*)').order('last_name'),
+        supabase.from('political_groups').select('*').order('name'),
+        supabase.from('bills').select('id, status, author_id'),
+      ])
+      setProfiles(profsRes.data ?? [])
+      setGroups(grpsRes.data ?? [])
+      setAllBills(billsRes.data ?? [])
+
+      // Résultats des scrutins clos
+      const { data: clos } = await supabase
+        .from('vote_sessions')
+        .select('*, bills(title)')
+        .eq('status', 'ferme')
+        .order('closed_at', { ascending: false })
+        .limit(10)
+
+      if (clos && clos.length > 0) {
+        const withResults = await Promise.all(clos.map(async (s: any) => {
+          const { data: v } = await supabase.from('votes').select('vote_value').eq('session_id', s.id)
+          const pour = v?.filter((x: any) => x.vote_value === 'pour').length ?? 0
+          const contre = v?.filter((x: any) => x.vote_value === 'contre').length ?? 0
+          const abstention = v?.filter((x: any) => x.vote_value === 'abstention').length ?? 0
+          const exprime = pour + contre
+          const adopte = exprime > 0 && pour > exprime / 2
+          return { ...s, pour, contre, abstention, adopte }
+        }))
+        setClosedSessions(withResults)
+      }
+    } catch (err) {
+      console.error('[SeancePage] fetchAll error:', err)
+    } finally {
+      setLoading(false)
     }
-
-    const { data: profs } = await supabase.from('profiles')
-      .select('*, political_groups!profiles_group_id_fkey(*)').order('last_name')
-    setProfiles(profs ?? [])
-
-    const { data: grps } = await supabase.from('political_groups').select('*').order('name')
-    setGroups(grps ?? [])
-
-    setLoading(false)
   }, [])
 
   useEffect(() => {
@@ -171,14 +214,14 @@ export default function SeancePage() {
         ) : seance ? (
           <div
             className="rounded-2xl p-8 text-white relative overflow-hidden"
-            style={{ background: seance.statut === 'en_cours' ? 'linear-gradient(135deg,#b21d0b,#8f1709)' : 'linear-gradient(135deg,#04439a,#033278)' }}
+            style={{ background: seance.statut === 'en_cours' ? 'linear-gradient(135deg,#b21d0b,#8f1709)' : seance.statut === 'terminee' ? 'linear-gradient(135deg,#374151,#1f2937)' : seance.statut === 'preparation' ? 'linear-gradient(135deg,#0369a1,#075985)' : 'linear-gradient(135deg,#04439a,#033278)' }}
           >
             <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="pg" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5"/></pattern></defs><rect width="100%" height="100%" fill="url(#pg)"/></svg>
             <div className="relative z-10">
               <div className="flex items-center gap-2 mb-3">
                 {seance.statut === 'en_cours' && <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />}
                 <span className="text-xs font-bold uppercase tracking-widest text-white/70" style={{ fontFamily: 'var(--font-corps)' }}>
-                  {seance.statut === 'en_cours' ? 'Séance en cours' : 'Prochaine séance'}
+                  {seance.statut === 'en_cours' ? '🔴 Séance en cours' : seance.statut === 'terminee' ? '✓ Dernière séance' : seance.statut === 'preparation' ? '🗓️ Séance à venir' : '📅 Prochaine séance'}
                 </span>
               </div>
               <h1 style={{ fontFamily: 'var(--font-titre)', fontSize: 'clamp(1.6rem,4vw,2.8rem)', fontWeight: 700 }}>{seance.titre}</h1>
@@ -189,10 +232,16 @@ export default function SeancePage() {
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl p-8 bg-white border border-gray-100 text-center">
-            <p style={{ fontFamily: 'var(--font-titre)', fontSize: '1.4rem', color: 'var(--pel-gris)', fontWeight: 700 }}>AUCUNE SÉANCE PLANIFIÉE</p>
-            <p className="text-gray-400 mt-2 text-sm" style={{ fontFamily: 'var(--font-corps)' }}>Consultez l&apos;agenda du PEL pour les prochaines dates.</p>
+          <div className="rounded-2xl p-8 text-center" style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.75)' }}>
+            <p className="text-4xl mb-3">🏛️</p>
+            <p style={{ fontFamily: 'var(--font-titre)', fontSize: '1.4rem', color: 'var(--pel-gris)', fontWeight: 700 }}>AUCUNE SÉANCE ENREGISTRÉE</p>
+            <p className="text-gray-400 mt-2 text-sm" style={{ fontFamily: 'var(--font-corps)' }}>Les séances planifiées et passées apparaîtront ici.</p>
           </div>
+        )}
+
+        {/* ORDRE DU JOUR AMÉLIORÉ */}
+        {!loading && seance && (
+          <OrdreduJour seance={seance} ordreJour={ordreJour} />
         )}
 
         {/* 2. PPL EN DÉBAT */}
@@ -408,7 +457,80 @@ export default function SeancePage() {
           </section>
         )}
 
-        {/* 5. CTA BAS DE PAGE */}
+        {/* STATS GLOBALES */}
+        {!loading && (
+          <SeanceStats profiles={profiles} groups={groups} closedSessions={closedSessions} bills={allBills} />
+        )}
+
+        {/* 5. ANNUAIRE DES PARLEMENTAIRES */}
+        {!loading && (
+          <AnnuaireParlementaires profiles={profiles} groups={groups} />
+        )}
+
+        {/* CLASSEMENT GROUPES */}
+        {!loading && groups.length > 0 && (
+          <ClassementGroupes groups={groups} profiles={profiles} bills={allBills} closedSessions={closedSessions} />
+        )}
+
+        {/* 6. RÉSULTATS DES SCRUTINS PASSÉS */}
+        {closedSessions.length > 0 && (
+          <section>
+            <h2 style={{ fontFamily: 'var(--font-titre)', fontSize: '1.4rem', color: 'var(--pel-bleu)', fontWeight: 700, marginBottom: '1rem' }}>
+              RÉSULTATS DES SCRUTINS
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {closedSessions.map((s: any) => {
+                const total = s.pour + s.contre + s.abstention
+                const pct = (v: number) => total > 0 ? Math.round(v / total * 100) : 0
+                return (
+                  <div key={s.id} style={{
+                    background: 'rgba(255,255,255,0.65)',
+                    backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255,255,255,0.8)',
+                    borderRadius: '1rem',
+                    padding: '1rem 1.25rem',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '1rem',
+                    alignItems: 'center',
+                    boxShadow: '0 2px 12px rgba(4,67,154,0.06)',
+                  }}>
+                    <span style={{
+                      padding: '0.2rem 0.7rem', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 700,
+                      background: s.adopte ? '#dcfce7' : '#fee2e2',
+                      color: s.adopte ? '#166534' : '#991b1b',
+                      flexShrink: 0,
+                    }}>
+                      {s.adopte ? '✓ ADOPTÉ' : '✗ REJETÉ'}
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontFamily: 'var(--font-corps)', fontWeight: 600, color: '#1e3a5f', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {s.title}
+                      </p>
+                      {s.bills?.title && (
+                        <p style={{ fontFamily: 'var(--font-corps)', fontSize: '0.78rem', color: '#6b7280', marginTop: '0.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {s.bills.title}
+                        </p>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', fontFamily: 'var(--font-corps)', flexShrink: 0 }}>
+                      <span style={{ color: '#16a34a', fontWeight: 700 }}>✓ {s.pour} ({pct(s.pour)}%)</span>
+                      <span style={{ color: '#dc2626', fontWeight: 700 }}>✗ {s.contre} ({pct(s.contre)}%)</span>
+                      <span style={{ color: '#9ca3af' }}>— {s.abstention}</span>
+                    </div>
+                    {s.type_scrutin && (
+                      <span style={{ fontSize: '0.72rem', color: '#9ca3af', flexShrink: 0 }}>
+                        {s.type_scrutin === 'secret' ? '🔒' : '🔓'}
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* 6. CTA BAS DE PAGE */}
         {!loading && (
           <section className="rounded-2xl p-8 text-center" style={{ background: 'var(--pel-bleu)' }}>
             <p style={{ fontFamily: 'var(--font-titre)', fontSize: '1.6rem', color: 'white', fontWeight: 700 }}>ESPACE RÉSERVÉ AUX PARLEMENTAIRES</p>

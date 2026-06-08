@@ -1,9 +1,29 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Instagram, Linkedin, Mail } from 'lucide-react'
+import { createClient } from '@supabase/supabase-js'
 
-export default function Footer() {
+const adminClient = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+export default async function Footer() {
   const year = new Date().getFullYear()
+
+  // Lire les réseaux sociaux depuis la base
+  const { data: socialSettings } = await adminClient
+    .from('site_settings')
+    .select('key, value')
+    .in('key', ['instagram', 'linkedin', 'email_contact'])
+
+  const settings: Record<string, string> = {}
+  ;(socialSettings ?? []).forEach((row: any) => { settings[row.key] = row.value ?? '' })
+
+  const instagramUrl = settings['instagram'] || null
+  const linkedinUrl = settings['linkedin'] || null
+  const emailContact = settings['email_contact'] || 'communication.pelyon@gmail.com'
+
   return (
     <footer style={{
       background: 'rgba(255,255,255,0.55)',
@@ -30,17 +50,21 @@ export default function Footer() {
               Institution parlementaire étudiante de la métropole lyonnaise.
             </p>
             <div className="flex gap-2 mt-4">
-              <a href="https://instagram.com/pel_lyon" target="_blank" rel="noreferrer"
-                className="p-2 rounded-xl transition-all hover:scale-110"
-                style={{ background: 'rgba(4,67,154,0.08)', color: 'var(--pel-bleu)', border: '1px solid rgba(4,67,154,0.12)' }}>
-                <Instagram size={16} />
-              </a>
-              <a href="https://linkedin.com/company/pel-lyon" target="_blank" rel="noreferrer"
-                className="p-2 rounded-xl transition-all hover:scale-110"
-                style={{ background: 'rgba(4,67,154,0.08)', color: 'var(--pel-bleu)', border: '1px solid rgba(4,67,154,0.12)' }}>
-                <Linkedin size={16} />
-              </a>
-              <a href="mailto:communication.pelyon@gmail.com"
+              {instagramUrl && (
+                <a href={instagramUrl} target="_blank" rel="noreferrer"
+                  className="p-2 rounded-xl transition-all hover:scale-110"
+                  style={{ background: 'rgba(4,67,154,0.08)', color: 'var(--pel-bleu)', border: '1px solid rgba(4,67,154,0.12)' }}>
+                  <Instagram size={16} />
+                </a>
+              )}
+              {linkedinUrl && (
+                <a href={linkedinUrl} target="_blank" rel="noreferrer"
+                  className="p-2 rounded-xl transition-all hover:scale-110"
+                  style={{ background: 'rgba(4,67,154,0.08)', color: 'var(--pel-bleu)', border: '1px solid rgba(4,67,154,0.12)' }}>
+                  <Linkedin size={16} />
+                </a>
+              )}
+              <a href={`mailto:${emailContact}`}
                 className="p-2 rounded-xl transition-all hover:scale-110"
                 style={{ background: 'rgba(4,67,154,0.08)', color: 'var(--pel-bleu)', border: '1px solid rgba(4,67,154,0.12)' }}>
                 <Mail size={16} />
@@ -70,7 +94,7 @@ export default function Footer() {
               Plateforme
             </p>
             <ul className="space-y-2">
-              {[['/seance', 'Séance en cours'], ['/ressources', 'Ressources'], ['/contact', 'Contact'], ['/login', 'Espace parlementaire']].map(([h, l]) => (
+              {[['/seance', 'Séance en cours'], ['/ressources', 'Ressources'], ['/login', 'Espace parlementaire']].map(([h, l]) => (
                 <li key={h}>
                   <Link href={h} className="text-sm text-gray-500 hover:text-[#04439a] transition-colors" style={{ fontFamily: 'var(--font-corps)' }}>
                     {l}
@@ -85,7 +109,9 @@ export default function Footer() {
             <p className="font-semibold text-xs mb-4 uppercase tracking-widest" style={{ color: 'var(--pel-bleu)', fontFamily: 'var(--font-corps)' }}>
               Contact
             </p>
-            <p className="text-sm text-gray-500" style={{ fontFamily: 'var(--font-corps)' }}>communication.pelyon@gmail.com</p>
+            <a href={`mailto:${emailContact}`} className="text-sm text-gray-500 hover:text-[#04439a] transition-colors" style={{ fontFamily: 'var(--font-corps)' }}>
+              {emailContact}
+            </a>
             <p className="text-sm text-gray-400 mt-2" style={{ fontFamily: 'var(--font-corps)' }}>Université de Lyon</p>
           </div>
         </div>

@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   )
 
   const body = await request.json()
-  const { email, password, first_name, last_name, birth_date, role, group_id } = body
+  const { email, password, first_name, last_name, birth_date, role, group_id, permissions } = body
 
   if (!email || !password || !first_name || !last_name) {
     return NextResponse.json({ error: 'Champs obligatoires manquants' }, { status: 400 })
@@ -48,6 +48,7 @@ export async function POST(request: Request) {
       role: role ?? 'parlementaire',
       group_id: group_id || null,
       birth_date: birth_date || null,
+      permissions: permissions ?? [],
     }).eq('id', newUser.user.id)
   }
 

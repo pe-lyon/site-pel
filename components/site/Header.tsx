@@ -13,7 +13,6 @@ const NAV = [
   { href: '/actualites', label: 'Actualités' },
   { href: '/agenda', label: 'Agenda' },
   { href: '/ressources', label: 'Ressources' },
-  { href: '/contact', label: 'Contact' },
 ]
 
 export default function Header() {

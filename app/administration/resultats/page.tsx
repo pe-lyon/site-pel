@@ -154,8 +154,30 @@ export default function ResultatsPage() {
               </div>
             </div>
 
+            {/* Bannière verdict (scrutin clos) */}
+            {session.status !== 'ouvert' && totalParlementaires > 0 && (() => {
+              const exprime = results.pour + results.contre
+              const adopte = results.pour > exprime / 2
+              return (
+                <div className={`rounded-2xl p-5 text-center font-bold text-2xl tracking-wide ${adopte ? 'bg-green-500 text-white' : 'bg-red-600 text-white'}`}>
+                  {adopte ? '✓ ADOPTÉ' : '✗ REJETÉ'}
+                  <p className="text-base font-normal mt-1 opacity-80">
+                    {results.pour} pour / {results.contre} contre / {results.abstention} abstentions
+                  </p>
+                </div>
+              )
+            })()}
+
             <div className="card">
-              <h3 className="section-title mb-3">Répartition ({totalParlementaires} votes exprimés)</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="section-title">Répartition ({totalParlementaires} votes exprimés)</h3>
+                {(session as any).type_scrutin === 'secret' && (
+                  <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">🔒 Scrutin secret</span>
+                )}
+                {(session as any).type_scrutin === 'public' && (
+                  <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">🔓 Scrutin public</span>
+                )}
+              </div>
               <div className="h-8 rounded-full overflow-hidden flex">
                 {results.pour > 0 && (
                   <div className="bg-green-500 flex items-center justify-center text-white text-xs font-bold" style={{ width: `${pct(results.pour)}%` }}>
@@ -176,15 +198,6 @@ export default function ResultatsPage() {
                   <div className="bg-gray-100 w-full flex items-center justify-center text-gray-400 text-xs">Aucun vote</div>
                 )}
               </div>
-              {results.pour > results.contre && totalParlementaires > 0 && (
-                <p className="text-green-600 font-bold mt-3 text-center">✓ Proposition ADOPTÉE</p>
-              )}
-              {results.contre > results.pour && totalParlementaires > 0 && (
-                <p className="text-red-600 font-bold mt-3 text-center">✗ Proposition REJETÉE</p>
-              )}
-              {results.pour === results.contre && totalParlementaires > 0 && (
-                <p className="text-amber-600 font-bold mt-3 text-center">= ÉGALITÉ</p>
-              )}
             </div>
 
             {Object.keys(results.byGroup).length > 0 && (
@@ -218,46 +231,54 @@ export default function ResultatsPage() {
               </div>
             )}
 
-            <div className="card p-0 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h3 className="section-title">Détail des votes individuels</h3>
-              </div>
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    <th className="table-header">Parlementaire</th>
-                    <th className="table-header">Vote</th>
-                    <th className="table-header hidden sm:table-cell">Procuration</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {results.votes.map(vote => (
-                    <tr key={vote.id} className="hover:bg-gray-50">
-                      <td className="table-cell">
-                        {vote.is_proxy ? (
-                          <span className="text-amber-600 font-medium text-sm">Vote par procuration</span>
-                        ) : (
-                          <span className="text-sm font-medium text-gray-800">
-                            {vote.profiles?.first_name} {vote.profiles?.last_name}
-                          </span>
-                        )}
-                      </td>
-                      <td className="table-cell">
-                        <span className={`badge font-bold ${vote.vote_value === 'pour' ? 'bg-green-100 text-green-700' : vote.vote_value === 'contre' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'}`}>
-                          {vote.vote_value.toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="table-cell hidden sm:table-cell text-xs text-gray-400">
-                        {vote.is_proxy ? 'Oui' : '—'}
-                      </td>
+            {(session as any).type_scrutin === 'public' ? (
+              <div className="card p-0 overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100">
+                  <h3 className="section-title">Détail des votes individuels (scrutin public)</h3>
+                </div>
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                      <th className="table-header">Parlementaire</th>
+                      <th className="table-header">Vote</th>
+                      <th className="table-header hidden sm:table-cell">Procuration</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              {results.votes.length === 0 && (
-                <p className="text-center text-gray-400 py-8 text-sm">Aucun vote encore enregistré</p>
-              )}
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {results.votes.map(vote => (
+                      <tr key={vote.id} className="hover:bg-gray-50">
+                        <td className="table-cell">
+                          {vote.is_proxy ? (
+                            <span className="text-amber-600 font-medium text-sm">Vote par procuration</span>
+                          ) : (
+                            <span className="text-sm font-medium text-gray-800">
+                              {vote.profiles?.first_name} {vote.profiles?.last_name}
+                            </span>
+                          )}
+                        </td>
+                        <td className="table-cell">
+                          <span className={`badge font-bold ${vote.vote_value === 'pour' ? 'bg-green-100 text-green-700' : vote.vote_value === 'contre' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'}`}>
+                            {vote.vote_value.toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="table-cell hidden sm:table-cell text-xs text-gray-400">
+                          {vote.is_proxy ? 'Oui' : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {results.votes.length === 0 && (
+                  <p className="text-center text-gray-400 py-8 text-sm">Aucun vote encore enregistré</p>
+                )}
+              </div>
+            ) : (
+              <div className="card text-center py-8 text-gray-500">
+                <p className="text-2xl mb-2">🔒</p>
+                <p className="font-semibold">Scrutin à bulletin secret</p>
+                <p className="text-sm text-gray-400 mt-1">Seuls les totaux sont visibles — les votes individuels restent anonymes.</p>
+              </div>
+            )}
           </>
         )}
 

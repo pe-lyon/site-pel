@@ -20,9 +20,15 @@ export default function HomeContent({ settings, evenements, actualites, chiffres
       {/* ——————————————— HERO ——————————————— */}
       <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden">
 
-        {/* Fond sombre hero */}
+        {/* Photo de fond hero */}
         <div className="absolute inset-0" style={{
-          background: 'linear-gradient(150deg, rgba(4,67,154,0.97) 0%, rgba(2,42,102,0.98) 55%, rgba(10,15,30,0.99) 100%)',
+          backgroundImage: 'url(/photo-seance.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+        }} />
+        {/* Overlay sombre pour lisibilité */}
+        <div className="absolute inset-0" style={{
+          background: 'linear-gradient(150deg, rgba(4,67,154,0.55) 0%, rgba(2,42,102,0.60) 55%, rgba(10,15,30,0.65) 100%)',
         }} />
 
         {/* Grille */}
@@ -69,7 +75,7 @@ export default function HomeContent({ settings, evenements, actualites, chiffres
             }}
           >
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-sm font-medium text-white/90">Session 2025–2026 en cours</span>
+            <span className="text-sm font-medium text-white/90">Session 2026–2027 en cours</span>
           </div>
 
           <h1 className="animate-slide-up delay-100 mb-6" style={{
@@ -86,7 +92,7 @@ export default function HomeContent({ settings, evenements, actualites, chiffres
             {heroSousTitre}
           </p>
 
-          <div className="animate-slide-up delay-300 flex flex-col sm:flex-row gap-4 justify-center">
+<div className="animate-slide-up delay-300 flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/presentation" className="hero-cta-rouge">
               Découvrir le PEL
             </Link>

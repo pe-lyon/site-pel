@@ -4,7 +4,14 @@ import { Plus, Pencil, Trash2, X, Save } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getInitials } from '@/lib/utils'
 
-const EMPTY = { prenom: '', nom: '', role: '', email: '', linkedin_url: '', ordre: '0' }
+const EMPTY = { prenom: '', nom: '', section: '', fonction: '', email: '', linkedin_url: '', ordre: '0' }
+
+function parseRole(role: string) {
+  const parts = role.split(' > ')
+  return parts.length >= 2
+    ? { section: parts[0].trim(), fonction: parts.slice(1).join(' > ').trim() }
+    : { section: '', fonction: role }
+}
 
 async function apiRead(table: string) {
   const r = await fetch('/api/admin/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ table, select: '*', order: { col: 'ordre' } }) })
@@ -15,11 +22,6 @@ async function apiWrite(table: string, op: string, data: any, filters?: any) {
   return await r.json()
 }
 
-const ROLES = [
-  'Président(e) du Parlement', 'Vice-Président(e)', 'Secrétaire Général(e)',
-  'Trésorier(ère)', 'Responsable communication', 'Chargé(e) de mission', 'Autre',
-]
-
 export default function AdminBureauPage() {
   const [membres, setMembres] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -27,24 +29,26 @@ export default function AdminBureauPage() {
   const [editing, setEditing] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
 
-  const fetch = useCallback(async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     setMembres(await apiRead('bureau_membres'))
     setLoading(false)
   }, [])
 
-  useEffect(() => { fetch() }, [fetch])
+  useEffect(() => { load() }, [load])
 
   function openNew() { setForm(EMPTY); setEditing(null); setOpen(true) }
   function openEdit(m: any) {
-    setForm({ prenom: m.prenom, nom: m.nom, role: m.role, email: m.email ?? '', linkedin_url: m.linkedin_url ?? '', ordre: String(m.ordre ?? 0) })
+    const { section, fonction } = parseRole(m.role ?? '')
+    setForm({ prenom: m.prenom, nom: m.nom, section, fonction, email: m.email ?? '', linkedin_url: m.linkedin_url ?? '', ordre: String(m.ordre ?? 0) })
     setEditing(m.id); setOpen(true)
   }
   const F = (k: keyof typeof EMPTY, v: string) => setForm(p => ({ ...p, [k]: v }))
 
   async function save() {
-    if (!form.prenom || !form.nom || !form.role) return toast.error('Prénom, nom et rôle requis')
-    const data = { prenom: form.prenom, nom: form.nom, role: form.role, email: form.email || null, linkedin_url: form.linkedin_url || null, ordre: parseInt(form.ordre) || 0, actif: true }
+    if (!form.prenom || !form.nom || !form.fonction) return toast.error('Prénom, nom et fonction requis')
+    const role = form.section ? `${form.section} > ${form.fonction}` : form.fonction
+    const data = { prenom: form.prenom, nom: form.nom, role, email: form.email || null, linkedin_url: form.linkedin_url || null, ordre: parseInt(form.ordre) || 0, actif: true }
     if (editing) {
       await apiWrite('bureau_membres', 'update', data, { id: editing })
       toast.success('Membre modifié')
@@ -52,14 +56,32 @@ export default function AdminBureauPage() {
       await apiWrite('bureau_membres', 'insert', data)
       toast.success('Membre ajouté')
     }
-    setOpen(false); fetch()
+    setOpen(false); load()
   }
 
   async function del(id: string) {
     if (!confirm('Supprimer ce membre ?')) return
     await apiWrite('bureau_membres', 'delete', {}, { id })
-    toast.success('Supprimé'); fetch()
+    toast.success('Supprimé'); load()
   }
+
+  // Grouper par section
+  const grouped: Record<string, any[]> = {}
+  for (const m of membres) {
+    const { section } = parseRole(m.role ?? '')
+    const key = section || '__sans_section__'
+    if (!grouped[key]) grouped[key] = []
+    grouped[key].push(m)
+  }
+  const sections = Object.keys(grouped).sort((a, b) => {
+    if (a === '__sans_section__') return 1
+    if (b === '__sans_section__') return -1
+    return a.localeCompare(b)
+  })
+
+  // Suggestions datalist
+  const usedSections = [...new Set(membres.map(m => parseRole(m.role ?? '').section).filter(Boolean))]
+  const usedFonctions = [...new Set(membres.map(m => parseRole(m.role ?? '').fonction).filter(Boolean))]
 
   return (
     <div>
@@ -70,24 +92,37 @@ export default function AdminBureauPage() {
 
       {loading ? (
         <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-blue-200 border-t-[#04439a] rounded-full animate-spin" /></div>
+      ) : membres.length === 0 ? (
+        <p className="text-gray-400 text-center py-12" style={{ fontFamily: 'var(--font-corps)' }}>Aucun membre. Ajoutez le premier !</p>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {membres.length === 0 && <p className="col-span-3 text-gray-400 text-center py-12" style={{ fontFamily: 'var(--font-corps)' }}>Aucun membre. Ajoutez le premier !</p>}
-          {membres.map(m => (
-            <div key={m.id} className="bg-white rounded-2xl p-5 border border-gray-100 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold" style={{ background: 'var(--pel-bleu)', fontFamily: 'var(--font-corps)' }}>
-                  {getInitials(m.prenom, m.nom)}
-                </div>
-                <div className="flex gap-1">
-                  <button onClick={() => openEdit(m)} className="p-1.5 text-gray-400 hover:text-[#04439a] rounded transition-colors"><Pencil size={14} /></button>
-                  <button onClick={() => del(m.id)} className="p-1.5 text-gray-400 hover:text-[#b21d0b] rounded transition-colors"><Trash2 size={14} /></button>
-                </div>
+        <div className="space-y-8">
+          {sections.map(sec => (
+            <div key={sec}>
+              <h2 className="text-sm font-bold uppercase tracking-widest mb-3 pb-2 border-b border-gray-200"
+                style={{ color: 'var(--pel-bleu)', fontFamily: 'var(--font-corps)' }}>
+                {sec === '__sans_section__' ? 'Sans section' : sec}
+              </h2>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {grouped[sec].map(m => {
+                  const { fonction } = parseRole(m.role ?? '')
+                  return (
+                    <div key={m.id} className="bg-white rounded-2xl p-5 border border-gray-100 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold" style={{ background: 'var(--pel-bleu)', fontFamily: 'var(--font-corps)' }}>
+                          {getInitials(m.prenom, m.nom)}
+                        </div>
+                        <div className="flex gap-1">
+                          <button onClick={() => openEdit(m)} className="p-1.5 text-gray-400 hover:text-[#04439a] rounded transition-colors"><Pencil size={14} /></button>
+                          <button onClick={() => del(m.id)} className="p-1.5 text-gray-400 hover:text-[#b21d0b] rounded transition-colors"><Trash2 size={14} /></button>
+                        </div>
+                      </div>
+                      <p className="font-bold text-gray-900" style={{ fontFamily: 'var(--font-corps)' }}>{m.prenom} {m.nom}</p>
+                      <p className="text-sm mt-0.5" style={{ color: 'var(--pel-bleu)', fontFamily: 'var(--font-corps)' }}>{fonction}</p>
+                      {m.email && <p className="text-xs text-gray-400 mt-1" style={{ fontFamily: 'var(--font-corps)' }}>{m.email}</p>}
+                    </div>
+                  )
+                })}
               </div>
-              <p className="font-bold text-gray-900" style={{ fontFamily: 'var(--font-corps)' }}>{m.prenom} {m.nom}</p>
-              <p className="text-sm mt-0.5" style={{ color: 'var(--pel-bleu)', fontFamily: 'var(--font-corps)' }}>{m.role}</p>
-              {m.email && <p className="text-xs text-gray-400 mt-1" style={{ fontFamily: 'var(--font-corps)' }}>{m.email}</p>}
-              <p className="text-xs text-gray-300 mt-2" style={{ fontFamily: 'var(--font-corps)' }}>Ordre : {m.ordre}</p>
             </div>
           ))}
         </div>
@@ -114,11 +149,44 @@ export default function AdminBureauPage() {
                 </div>
               </div>
               <div>
-                <label className="label">Rôle *</label>
-                <select className="input-field" value={form.role} onChange={e => F('role', e.target.value)}>
-                  <option value="">Sélectionner un rôle...</option>
-                  {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-                </select>
+                <label className="label">Section</label>
+                <input
+                  className="input-field"
+                  list="sections-list"
+                  value={form.section}
+                  onChange={e => F('section', e.target.value)}
+                  placeholder="Bureau Exécutif, Pôle Communication..."
+                />
+                <datalist id="sections-list">
+                  <option value="Bureau Exécutif" />
+                  <option value="Bureau Restreint" />
+                  <option value="Pôle Communication" />
+                  <option value="Pôle Logistique" />
+                  <option value="Pôle Juridique" />
+                  <option value="Pôle Académique" />
+                  {usedSections.map(s => <option key={s} value={s} />)}
+                </datalist>
+                <p className="text-xs text-gray-400 mt-1">Laisse vide si pas de section</p>
+              </div>
+              <div>
+                <label className="label">Fonction *</label>
+                <input
+                  className="input-field"
+                  list="fonctions-list"
+                  value={form.fonction}
+                  onChange={e => F('fonction', e.target.value)}
+                  placeholder="Président(e), Responsable..."
+                />
+                <datalist id="fonctions-list">
+                  <option value="Président(e)" />
+                  <option value="Vice-Président(e)" />
+                  <option value="Secrétaire Général(e)" />
+                  <option value="Trésorier(ère)" />
+                  <option value="Responsable" />
+                  <option value="Chargé(e) de mission" />
+                  <option value="Membre" />
+                  {usedFonctions.map(f => <option key={f} value={f} />)}
+                </datalist>
               </div>
               <div>
                 <label className="label">Email</label>

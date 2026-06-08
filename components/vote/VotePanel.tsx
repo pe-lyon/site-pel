@@ -21,20 +21,30 @@ export default function VotePanel({ sessionId, userId }: VotePanelProps) {
   const [loading, setLoading] = useState(true)
   const [voting, setVoting] = useState(false)
   const [votingProxy, setVotingProxy] = useState(false)
+  const [tallies, setTallies] = useState<{ pour: number; contre: number; abstention: number } | null>(null)
 
   const fetchData = useCallback(async () => {
     const [
       { data: sessionData },
       { data: myVoteData },
       { data: proxyData },
+      { data: allVotes },
     ] = await Promise.all([
       supabase.from('vote_sessions').select('*, bills(*)').eq('id', sessionId).single(),
       supabase.from('votes').select('*').eq('session_id', sessionId).eq('voter_id', userId).maybeSingle(),
       supabase.from('proxies').select('*, absent:profiles!absent_id(first_name, last_name)').eq('holder_id', userId).maybeSingle(),
+      supabase.from('votes').select('vote_value').eq('session_id', sessionId),
     ])
     setSession(sessionData)
     setMyVote(myVoteData)
     setProxy(proxyData)
+
+    if (allVotes) {
+      const pour = allVotes.filter((v: any) => v.vote_value === 'pour').length
+      const contre = allVotes.filter((v: any) => v.vote_value === 'contre').length
+      const abstention = allVotes.filter((v: any) => v.vote_value === 'abstention').length
+      setTallies({ pour, contre, abstention })
+    }
 
     // Vote de procuration déjà soumis ?
     if (proxyData) {
@@ -104,17 +114,64 @@ export default function VotePanel({ sessionId, userId }: VotePanelProps) {
   if (!session) return <p className="text-center text-gray-400">Scrutin introuvable.</p>
 
   if (session.status === 'ferme') {
+    const exprime = (tallies?.pour ?? 0) + (tallies?.contre ?? 0)
+    const adopte = exprime > 0 && (tallies?.pour ?? 0) > exprime / 2
+    const hasVotes = (tallies?.pour ?? 0) + (tallies?.contre ?? 0) + (tallies?.abstention ?? 0) > 0
+
     return (
-      <div className="card text-center py-12">
-        <Clock size={40} className="mx-auto mb-3 text-gray-300" />
-        <h2 className="text-xl font-bold text-gray-700">Vote terminé</h2>
-        <p className="text-gray-400 text-sm mt-1">Ce scrutin est désormais clos.</p>
+      <div className="space-y-4">
+        {hasVotes && (
+          <div className={`rounded-2xl p-6 text-center font-bold text-3xl tracking-wide ${adopte ? 'bg-green-500 text-white' : 'bg-red-600 text-white'}`}>
+            {adopte ? '✓ ADOPTÉ' : '✗ REJETÉ'}
+            {tallies && (
+              <p className="text-base font-normal mt-2 opacity-90">
+                {tallies.pour} pour · {tallies.contre} contre · {tallies.abstention} abstentions
+              </p>
+            )}
+          </div>
+        )}
+        <div className="card text-center py-8">
+          <Clock size={36} className="mx-auto mb-3 text-gray-300" />
+          <h2 className="text-xl font-bold text-gray-700">Vote terminé</h2>
+          <p className="text-gray-400 text-sm mt-1">Ce scrutin est désormais clos.</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Afficher les barres en temps réel si vote ouvert
+  const RealtimeBars = () => {
+    if (!tallies) return null
+    const total = tallies.pour + tallies.contre + tallies.abstention
+    if (total === 0) return null
+    const pct = (v: number) => total > 0 ? Math.round((v / total) * 100) : 0
+    return (
+      <div className="card mt-4">
+        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-3">Résultats en direct ({total} votes)</p>
+        <div className="space-y-2">
+          {[
+            { label: 'Pour', val: tallies.pour, color: '#22c55e', bg: '#f0fdf4' },
+            { label: 'Contre', val: tallies.contre, color: '#ef4444', bg: '#fef2f2' },
+            { label: 'Abstention', val: tallies.abstention, color: '#d1d5db', bg: '#f9fafb' },
+          ].map(({ label, val, color, bg }) => (
+            <div key={label}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.2rem' }}>
+                <span style={{ fontWeight: 600, color: '#374151' }}>{label}</span>
+                <span style={{ color, fontWeight: 700 }}>{val} ({pct(val)}%)</span>
+              </div>
+              <div style={{ height: '8px', background: bg, borderRadius: '999px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${pct(val)}%`, background: color, borderRadius: '999px', transition: 'width 0.5s ease' }} />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
+      <RealtimeBars />
       {/* Mon vote */}
       <div className="card">
         <h2 className="section-title mb-1">Mon vote</h2>

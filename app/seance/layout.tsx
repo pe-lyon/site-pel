@@ -11,7 +11,7 @@ export default function SeanceLayout({ children }: { children: React.ReactNode }
               <Image src="/logo-pel.png" alt="PEL" width={32} height={32} style={{ filter: 'brightness(0) invert(1)' }} />
               <div>
                 <p className="text-white font-bold text-sm" style={{ fontFamily: 'var(--font-titre)', letterSpacing: '0.05em' }}>PLATEFORME PARLEMENTAIRE</p>
-                <p className="text-blue-200 text-xs" style={{ fontFamily: 'var(--font-corps)' }}>Session 2025-2026</p>
+                <p className="text-blue-200 text-xs" style={{ fontFamily: 'var(--font-corps)' }}>Session 2026-2027</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
