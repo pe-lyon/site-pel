@@ -29,7 +29,7 @@ async function getAgenda(seanceId: string) {
 async function getVoteResults(voteSessionId: string) {
   const { data: votes } = await adminClient
     .from('votes')
-    .select('vote_value, profiles(first_name, last_name, political_groups(name, color))')
+    .select('vote_value, profiles(first_name, last_name, political_groups!profiles_group_id_fkey(name, color))')
     .eq('session_id', voteSessionId)
 
   if (!votes) return null
@@ -59,7 +59,7 @@ async function getVoteResults(voteSessionId: string) {
 async function getParlementaires() {
   const { data } = await adminClient
     .from('profiles')
-    .select('first_name, last_name, role, political_groups(name, color)')
+    .select('first_name, last_name, role, political_groups!profiles_group_id_fkey(name, color)')
     .order('last_name', { ascending: true })
   return data ?? []
 }

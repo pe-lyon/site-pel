@@ -50,11 +50,12 @@ export default function DashboardPage() {
       setRecentBills(recent.slice(0, 5))
 
       // Profil courant — directement via le client Supabase (plus fiable)
-      const { data: myProfile } = await supabase
+      const { data: myProfile, error: profileError } = await supabase
         .from('profiles')
-        .select('*, political_groups(*)')
+        .select('*, political_groups!profiles_group_id_fkey(*)')
         .eq('id', user.id)
         .single()
+      if (profileError) console.error('Profil error:', profileError.message)
       setProfile(myProfile ?? null)
 
       setLoading(false)

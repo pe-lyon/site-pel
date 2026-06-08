@@ -20,11 +20,11 @@ export default function ProcurationsPage() {
 
   const fetchData = useCallback(async () => {
     const [{ data: p }, { data: pr }] = await Promise.all([
-      supabase.from('profiles').select('*, political_groups(name, color)').order('last_name'),
+      supabase.from('profiles').select('*, political_groups!profiles_group_id_fkey(name, color)').order('last_name'),
       supabase.from('proxies').select(`
         *,
-        absent:profiles!absent_id(id, first_name, last_name, political_groups(name, color)),
-        holder:profiles!holder_id(id, first_name, last_name, political_groups(name, color))
+        absent:profiles!absent_id(id, first_name, last_name, political_groups!profiles_group_id_fkey(name, color)),
+        holder:profiles!holder_id(id, first_name, last_name, political_groups!profiles_group_id_fkey(name, color))
       `),
     ])
     setProfiles(p ?? [])
