@@ -7,8 +7,13 @@ import toast from 'react-hot-toast'
 import { Plus, Pencil, Trash2, X, Save } from 'lucide-react'
 import TopBar from '@/components/layout/TopBar'
 
+const DOMAIN = '@assemblee-pel.fr'
+function toIdentifiant(prenom: string, nom: string) {
+  const clean = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, '')
+  return `${clean(prenom)}.${clean(nom)}`
+}
+
 interface FormData {
-  email: string
   password: string
   first_name: string
   last_name: string
@@ -18,7 +23,6 @@ interface FormData {
 }
 
 const emptyForm: FormData = {
-  email: '',
   password: '',
   first_name: '',
   last_name: '',
@@ -75,7 +79,6 @@ export default function ParlementairesPage() {
   function openEdit(profile: Profile) {
     setEditing(profile)
     setForm({
-      email: profile.email,
       password: '',
       first_name: profile.first_name,
       last_name: profile.last_name,
@@ -110,11 +113,13 @@ export default function ParlementairesPage() {
         }, { id: editing.id })
         toast.success('Parlementaire modifié')
       } else {
-        // Création via l'API route (service role côté serveur)
+        // Génère l'email interne automatiquement depuis prénom.nom
+        const identifiant = toIdentifiant(form.first_name, form.last_name)
+        const email = `${identifiant}${DOMAIN}`
         const res = await fetch('/api/admin/create-user', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
+          body: JSON.stringify({ ...form, email }),
         })
         const result = await res.json()
         if (!res.ok) throw new Error(result.error)
@@ -200,17 +205,20 @@ export default function ParlementairesPage() {
               </div>
               {!editing && (
                 <>
-                  <div>
-                    <label className="label">Email *</label>
-                    <input
-                      type="email"
-                      value={form.email}
-                      onChange={e => setForm({ ...form, email: e.target.value })}
-                      className="input-field"
-                      required
-                    />
+                  <div className="sm:col-span-2 bg-blue-50 rounded-lg px-4 py-3 flex items-center gap-3">
+                    <div>
+                      <p className="text-xs text-gray-500 mb-0.5" style={{ fontFamily: 'var(--font-corps)' }}>Identifiant généré automatiquement</p>
+                      <p className="font-mono font-semibold text-sm" style={{ color: 'var(--pel-bleu)' }}>
+                        {form.first_name || form.last_name
+                          ? toIdentifiant(form.first_name || '…', form.last_name || '…')
+                          : <span className="text-gray-400">prenom.nom</span>}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5" style={{ fontFamily: 'var(--font-corps)' }}>
+                        Le député se connectera avec cet identifiant
+                      </p>
+                    </div>
                   </div>
-                  <div>
+                  <div className="sm:col-span-2">
                     <label className="label">Mot de passe provisoire *</label>
                     <input
                       type="password"
@@ -221,6 +229,7 @@ export default function ParlementairesPage() {
                       minLength={8}
                       required
                     />
+                    <p className="text-xs text-gray-400 mt-1" style={{ fontFamily: 'var(--font-corps)' }}>À communiquer au parlementaire lors de son accueil</p>
                   </div>
                 </>
               )}
@@ -295,7 +304,7 @@ export default function ParlementairesPage() {
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">{profile.first_name} {profile.last_name}</p>
-                        <p className="text-xs text-gray-400">{profile.email}</p>
+                        <p className="text-xs text-gray-400 font-mono">{profile.email?.replace('@assemblee-pel.fr', '')}</p>
                       </div>
                     </div>
                   </td>

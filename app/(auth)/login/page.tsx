@@ -1,21 +1,24 @@
 'use client'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 
+const DOMAIN = '@assemblee-pel.fr'
+const toEmail = (identifiant: string) =>
+  identifiant.includes('@') ? identifiant : `${identifiant.trim().toLowerCase()}${DOMAIN}`
+
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [identifiant, setIdentifiant] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
   const supabase = createClient()
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
+    const email = toEmail(identifiant)
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       toast.error('Identifiants incorrects')
@@ -23,11 +26,8 @@ export default function LoginPage() {
       return
     }
 
-    // Redirection selon l'email : admin du site → /admin, sinon → dashboard
-    const adminEmail = 'admin@assemblee-pel.fr'
     const next = new URLSearchParams(window.location.search).get('next')
-    const destination = next ?? (data.user.email === adminEmail ? '/admin' : '/dashboard')
-    // Navigation dure pour éviter que le middleware de /login n'interfère
+    const destination = next ?? '/dashboard'
     window.location.href = destination
   }
 
@@ -81,12 +81,32 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="label">Adresse email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="votre@email.com" className="input-field" required />
+              <label className="label">Identifiant</label>
+              <input
+                type="text"
+                value={identifiant}
+                onChange={e => setIdentifiant(e.target.value)}
+                placeholder="prenom.nom"
+                className="input-field"
+                required
+                autoComplete="username"
+                autoFocus
+              />
+              <p className="text-xs text-gray-400 mt-1" style={{ fontFamily: 'var(--font-corps)' }}>
+                Format : <span className="font-medium">prenom.nom</span> (sans accent, sans majuscule)
+              </p>
             </div>
             <div>
               <label className="label">Mot de passe</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="input-field" required />
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="input-field"
+                required
+                autoComplete="current-password"
+              />
             </div>
             <button type="submit" disabled={loading} className="btn-primary w-full py-3 text-base">
               {loading ? 'Connexion...' : 'Se connecter →'}

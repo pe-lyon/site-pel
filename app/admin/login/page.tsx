@@ -2,13 +2,16 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import Image from 'next/image'
 import Link from 'next/link'
 import { Lock } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+const DOMAIN = '@assemblee-pel.fr'
+const toEmail = (identifiant: string) =>
+  identifiant.includes('@') ? identifiant : `${identifiant.trim().toLowerCase()}${DOMAIN}`
+
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('')
+  const [identifiant, setIdentifiant] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
@@ -17,6 +20,7 @@ export default function AdminLoginPage() {
     e.preventDefault()
     setLoading(true)
 
+    const email = toEmail(identifiant)
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
@@ -25,7 +29,6 @@ export default function AdminLoginPage() {
       return
     }
 
-    // Vérifier que c'est bien le compte admin du site
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -39,7 +42,6 @@ export default function AdminLoginPage() {
       return
     }
 
-    // Redirection directe vers le panel admin
     window.location.href = '/admin'
   }
 
@@ -73,15 +75,16 @@ export default function AdminLoginPage() {
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="label">Email administrateur</label>
+              <label className="label">Identifiant</label>
               <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="admin@assemblee-pel.fr"
+                type="text"
+                value={identifiant}
+                onChange={e => setIdentifiant(e.target.value)}
+                placeholder="admin"
                 className="input-field"
                 required
                 autoFocus
+                autoComplete="username"
               />
             </div>
             <div>
@@ -93,6 +96,7 @@ export default function AdminLoginPage() {
                 placeholder="••••••••"
                 className="input-field"
                 required
+                autoComplete="current-password"
               />
             </div>
             <button
