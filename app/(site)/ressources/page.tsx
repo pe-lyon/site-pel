@@ -10,13 +10,25 @@ export default async function RessourcesPage() {
 
   return (
     <div>
-      <section style={{ background: 'var(--pel-bleu)' }} className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section
+        style={{
+          background: 'var(--pel-bleu)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+        className="py-20"
+      >
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="animate-orb" style={{ position: 'absolute', width: 340, height: 340, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', filter: 'blur(60px)', top: '-80px', right: '10%' }} />
+          <div className="animate-orb-reverse" style={{ position: 'absolute', width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', filter: 'blur(40px)', bottom: '-60px', left: '5%' }} />
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <p className="text-blue-200 text-sm mb-2" style={{ fontFamily: 'var(--font-corps)' }}>Documents officiels</p>
           <h1 className="text-white" style={{ fontFamily: 'var(--font-titre)', fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 700 }}>RESSOURCES</h1>
         </div>
       </section>
-      <section className="py-16" style={{ background: 'var(--pel-creme)' }}>
+
+      <section className="py-16">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           {docs.length === 0 ? (
             <div className="text-center py-20">
@@ -30,7 +42,10 @@ export default async function RessourcesPage() {
                   <h2 className="mb-6" style={{ fontFamily: 'var(--font-titre)', fontSize: '1.8rem', color: 'var(--pel-bleu)', fontWeight: 700 }}>{String(cat).toUpperCase()}</h2>
                   <div className="space-y-4">
                     {docs.filter((d: any) => (d.categorie ?? 'Autres') === cat).map((doc: any) => (
-                      <div key={doc.id} className="bg-white rounded-xl p-6 flex items-start gap-4 border border-gray-100 hover:border-[#04439a] hover:shadow-md transition-all">
+                      <div
+                        key={doc.id}
+                        className="glass-card rounded-xl p-6 flex items-start gap-4"
+                      >
                         <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--pel-bleu-light)' }}>
                           <FileText size={20} style={{ color: 'var(--pel-bleu)' }} />
                         </div>

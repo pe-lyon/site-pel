@@ -16,38 +16,75 @@ export default function ContactPage() {
     setLoading(false)
   }
 
+  const inputStyle: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.70)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+    border: '1.5px solid rgba(255,255,255,0.80)',
+    borderRadius: '0.5rem',
+    padding: '0.625rem 0.875rem',
+    width: '100%',
+    outline: 'none',
+    fontFamily: 'var(--font-corps)',
+    fontSize: '0.95rem',
+    color: '#1f2937',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+  }
+
   return (
     <div>
-      <section style={{ background: 'var(--pel-bleu)' }} className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section
+        style={{
+          background: 'var(--pel-bleu)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+        className="py-20"
+      >
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="animate-orb" style={{ position: 'absolute', width: 340, height: 340, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', filter: 'blur(60px)', top: '-80px', right: '10%' }} />
+          <div className="animate-orb-reverse" style={{ position: 'absolute', width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', filter: 'blur(40px)', bottom: '-60px', left: '5%' }} />
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <p className="text-blue-200 text-sm mb-2" style={{ fontFamily: 'var(--font-corps)' }}>Nous écrire</p>
           <h1 className="text-white" style={{ fontFamily: 'var(--font-titre)', fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 700 }}>CONTACT</h1>
         </div>
       </section>
 
-      <section className="py-20" style={{ background: 'var(--pel-creme)' }}>
+      <section className="py-20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16">
-            <div>
+            {/* Formulaire */}
+            <div
+              style={{
+                background: 'rgba(255,255,255,0.55)',
+                backdropFilter: 'blur(20px) saturate(160%)',
+                WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+                border: '1px solid rgba(255,255,255,0.75)',
+                boxShadow: '0 4px 24px rgba(4,67,154,0.07), inset 0 1px 0 rgba(255,255,255,0.9)',
+                borderRadius: '1rem',
+                padding: '2rem',
+              }}
+            >
               <h2 className="mb-6" style={{ fontFamily: 'var(--font-titre)', fontSize: '2rem', color: 'var(--pel-bleu)', fontWeight: 700 }}>ENVOYEZ-NOUS UN MESSAGE</h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="label">Nom</label>
-                    <input className="input-field" placeholder="Votre nom" value={form.nom} onChange={e => setForm({...form, nom: e.target.value})} required />
+                    <input style={inputStyle} placeholder="Votre nom" value={form.nom} onChange={e => setForm({...form, nom: e.target.value})} required />
                   </div>
                   <div>
                     <label className="label">Email</label>
-                    <input type="email" className="input-field" placeholder="votre@email.com" value={form.email} onChange={e => setForm({...form, email: e.target.value})} required />
+                    <input type="email" style={inputStyle} placeholder="votre@email.com" value={form.email} onChange={e => setForm({...form, email: e.target.value})} required />
                   </div>
                 </div>
                 <div>
                   <label className="label">Objet</label>
-                  <input className="input-field" placeholder="Objet de votre message" value={form.objet} onChange={e => setForm({...form, objet: e.target.value})} required />
+                  <input style={inputStyle} placeholder="Objet de votre message" value={form.objet} onChange={e => setForm({...form, objet: e.target.value})} required />
                 </div>
                 <div>
                   <label className="label">Message</label>
-                  <textarea className="input-field" rows={5} placeholder="Votre message..." value={form.message} onChange={e => setForm({...form, message: e.target.value})} required style={{ resize: 'none' }} />
+                  <textarea style={{ ...inputStyle, resize: 'none' }} rows={5} placeholder="Votre message..." value={form.message} onChange={e => setForm({...form, message: e.target.value})} required />
                 </div>
                 <button type="submit" disabled={loading} className="btn-primary w-full py-3">
                   {loading ? 'Envoi...' : 'Envoyer le message →'}
@@ -55,8 +92,19 @@ export default function ContactPage() {
               </form>
             </div>
 
+            {/* Coordonnées */}
             <div className="space-y-8">
-              <div>
+              <div
+                style={{
+                  background: 'rgba(255,255,255,0.55)',
+                  backdropFilter: 'blur(20px) saturate(160%)',
+                  WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+                  border: '1px solid rgba(255,255,255,0.75)',
+                  boxShadow: '0 4px 24px rgba(4,67,154,0.07), inset 0 1px 0 rgba(255,255,255,0.9)',
+                  borderRadius: '1rem',
+                  padding: '2rem',
+                }}
+              >
                 <h2 className="mb-6" style={{ fontFamily: 'var(--font-titre)', fontSize: '2rem', color: 'var(--pel-bleu)', fontWeight: 700 }}>NOS COORDONNÉES</h2>
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
@@ -80,13 +128,23 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              <div>
+              <div
+                style={{
+                  background: 'rgba(255,255,255,0.55)',
+                  backdropFilter: 'blur(20px) saturate(160%)',
+                  WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+                  border: '1px solid rgba(255,255,255,0.75)',
+                  boxShadow: '0 4px 24px rgba(4,67,154,0.07), inset 0 1px 0 rgba(255,255,255,0.9)',
+                  borderRadius: '1rem',
+                  padding: '2rem',
+                }}
+              >
                 <p className="font-semibold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-corps)' }}>Réseaux sociaux</p>
                 <div className="flex gap-3">
-                  <a href="https://instagram.com/pel_lyon" target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 hover:border-[#04439a] transition-colors text-sm" style={{ fontFamily: 'var(--font-corps)' }}>
+                  <a href="https://instagram.com/pel_lyon" target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/60 hover:border-[#04439a] transition-colors text-sm bg-white/40" style={{ fontFamily: 'var(--font-corps)' }}>
                     <Instagram size={16} /> Instagram
                   </a>
-                  <a href="https://linkedin.com/company/pel-lyon" target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 hover:border-[#04439a] transition-colors text-sm" style={{ fontFamily: 'var(--font-corps)' }}>
+                  <a href="https://linkedin.com/company/pel-lyon" target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/60 hover:border-[#04439a] transition-colors text-sm bg-white/40" style={{ fontFamily: 'var(--font-corps)' }}>
                     <Linkedin size={16} /> LinkedIn
                   </a>
                 </div>

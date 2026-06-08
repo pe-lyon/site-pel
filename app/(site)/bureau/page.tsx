@@ -9,14 +9,25 @@ export default async function BureauPage() {
 
   return (
     <div>
-      <section style={{ background: 'var(--pel-bleu)' }} className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section
+        style={{
+          background: 'var(--pel-bleu)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+        className="py-20"
+      >
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="animate-orb" style={{ position: 'absolute', width: 340, height: 340, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', filter: 'blur(60px)', top: '-80px', right: '10%' }} />
+          <div className="animate-orb-reverse" style={{ position: 'absolute', width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', filter: 'blur(40px)', bottom: '-60px', left: '5%' }} />
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <p className="text-blue-200 text-sm mb-2" style={{ fontFamily: 'var(--font-corps)' }}>L&apos;équipe dirigeante</p>
           <h1 className="text-white" style={{ fontFamily: 'var(--font-titre)', fontSize: 'clamp(2.5rem,6vw,5rem)', fontWeight: 700 }}>LE BUREAU</h1>
         </div>
       </section>
 
-      <section className="py-20" style={{ background: 'var(--pel-creme)' }}>
+      <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {membres.length === 0 ? (
             <div className="text-center py-20">
@@ -27,7 +38,10 @@ export default async function BureauPage() {
           ) : (
             <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
               {membres.map((m: any) => (
-                <div key={m.id} className="bg-white rounded-2xl p-6 text-center border border-gray-100 hover:shadow-lg transition-shadow">
+                <div
+                  key={m.id}
+                  className="glass-card rounded-2xl p-6 text-center"
+                >
                   <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-xl font-bold" style={{ background: 'var(--pel-bleu)', fontFamily: 'var(--font-titre)' }}>
                     {m.photo_url
                       ? <img src={m.photo_url} alt={`${m.prenom} ${m.nom}`} className="w-full h-full rounded-full object-cover"/>
@@ -38,12 +52,12 @@ export default async function BureauPage() {
                   <p className="text-sm text-gray-500 mt-1" style={{ fontFamily: 'var(--font-corps)' }}>{m.role}</p>
                   <div className="flex justify-center gap-3 mt-4">
                     {m.email && (
-                      <a href={`mailto:${m.email}`} className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-[#04439a]">
+                      <a href={`mailto:${m.email}`} className="p-2 rounded-lg hover:bg-white/50 transition-colors text-gray-400 hover:text-[#04439a]">
                         <Mail size={16}/>
                       </a>
                     )}
                     {m.linkedin_url && (
-                      <a href={m.linkedin_url} target="_blank" rel="noreferrer" className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-[#04439a]">
+                      <a href={m.linkedin_url} target="_blank" rel="noreferrer" className="p-2 rounded-lg hover:bg-white/50 transition-colors text-gray-400 hover:text-[#04439a]">
                         <Linkedin size={16}/>
                       </a>
                     )}

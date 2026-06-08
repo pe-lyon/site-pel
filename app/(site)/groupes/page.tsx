@@ -3,15 +3,38 @@ export const revalidate = 60
 export default function GroupesPage() {
   return (
     <div>
-      <section style={{ background: 'var(--pel-bleu)' }} className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section
+        style={{
+          background: 'var(--pel-bleu)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+        className="py-20"
+      >
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="animate-orb" style={{ position: 'absolute', width: 340, height: 340, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', filter: 'blur(60px)', top: '-80px', right: '10%' }} />
+          <div className="animate-orb-reverse" style={{ position: 'absolute', width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', filter: 'blur(40px)', bottom: '-60px', left: '5%' }} />
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <p className="text-blue-200 text-sm mb-2" style={{ fontFamily: 'var(--font-corps)' }}>Composition de l&apos;assemblée</p>
           <h1 className="text-white" style={{ fontFamily: 'var(--font-titre)', fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 700 }}>GROUPES POLITIQUES</h1>
         </div>
       </section>
-      <section className="py-16" style={{ background: 'var(--pel-creme)' }}>
+
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-2xl p-8 mb-12 border border-gray-100">
+          <div
+            style={{
+              background: 'rgba(255,255,255,0.55)',
+              backdropFilter: 'blur(20px) saturate(160%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+              border: '1px solid rgba(255,255,255,0.75)',
+              boxShadow: '0 4px 24px rgba(4,67,154,0.07), inset 0 1px 0 rgba(255,255,255,0.9)',
+              borderRadius: '1rem',
+              padding: '2rem',
+              marginBottom: '3rem',
+            }}
+          >
             <h2 className="mb-6 text-center" style={{ fontFamily: 'var(--font-titre)', fontSize: '1.8rem', color: 'var(--pel-bleu)', fontWeight: 700 }}>COMPOSITION DE L&apos;HÉMICYCLE</h2>
             <svg viewBox="0 0 1000 500" className="w-full" style={{ maxHeight: 400 }}>
               <path d="M 80 420 A 420 420 0 0 1 920 420" fill="none" stroke="#e5e7eb" strokeWidth="2"/>

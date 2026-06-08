@@ -7,14 +7,25 @@ export default async function ActualitesPage() {
 
   return (
     <div>
-      <section style={{ background: 'var(--pel-bleu)' }} className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section
+        style={{
+          background: 'var(--pel-bleu)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+        className="py-20"
+      >
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="animate-orb" style={{ position: 'absolute', width: 340, height: 340, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', filter: 'blur(60px)', top: '-80px', right: '10%' }} />
+          <div className="animate-orb-reverse" style={{ position: 'absolute', width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', filter: 'blur(40px)', bottom: '-60px', left: '5%' }} />
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <p className="text-blue-200 text-sm mb-2" style={{ fontFamily: 'var(--font-corps)' }}>Restez informé</p>
           <h1 className="text-white" style={{ fontFamily: 'var(--font-titre)', fontSize: 'clamp(2.5rem,6vw,5rem)', fontWeight: 700 }}>ACTUALITÉS</h1>
         </div>
       </section>
 
-      <section className="py-16" style={{ background: 'var(--pel-creme)' }}>
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {articles.length === 0 ? (
             <div className="text-center py-20">
@@ -25,7 +36,10 @@ export default async function ActualitesPage() {
           ) : (
             <div className="grid md:grid-cols-3 gap-8">
               {articles.map((a: any) => (
-                <article key={a.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow group border border-gray-100">
+                <article
+                  key={a.id}
+                  className="glass-card rounded-2xl overflow-hidden group"
+                >
                   <div className="h-44 flex items-center justify-center" style={{ background: 'var(--pel-bleu-light)' }}>
                     <span style={{ fontFamily: 'var(--font-titre)', fontSize: '3rem', color: 'var(--pel-bleu)', opacity: 0.3 }}>PEL</span>
                   </div>
