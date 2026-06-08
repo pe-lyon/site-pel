@@ -55,8 +55,8 @@ export default function Header() {
             transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between h-14">
 
               {/* Logo */}
               <Link href="/" className="flex items-center gap-3 flex-shrink-0 group">
@@ -80,14 +80,14 @@ export default function Header() {
               </Link>
 
               {/* Nav desktop */}
-              <nav className="hidden lg:flex items-center gap-0.5">
+              <nav className="hidden lg:flex items-center gap-0">
                 {NAV.map(item => {
                   const active = pathname === item.href
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="relative px-3.5 py-2 text-sm font-medium rounded-lg group"
+                      className="relative px-2.5 py-1.5 text-sm font-medium rounded-lg group"
                       style={{
                         fontFamily: 'var(--font-corps)',
                         color: active ? 'var(--pel-bleu)' : '#4b5563',
@@ -206,7 +206,7 @@ export default function Header() {
       </header>
 
       {/* Spacer pour le header flottant */}
-      <div style={{ height: scrolled ? '65px' : '88px', transition: 'height 0.4s' }} />
+      <div style={{ height: scrolled ? '57px' : '80px', transition: 'height 0.4s' }} />
     </>
   )
 }
