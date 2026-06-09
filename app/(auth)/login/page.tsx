@@ -1,35 +1,66 @@
 'use client'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
-
-const DOMAIN = '@assemblee-pel.fr'
-const toEmail = (identifiant: string) =>
-  identifiant.includes('@') ? identifiant : `${identifiant.trim().toLowerCase()}${DOMAIN}`
+import TurnstileWidget from '@/components/TurnstileWidget'
 
 export default function LoginPage() {
   const [identifiant, setIdentifiant] = useState('')
   const [password, setPassword] = useState('')
+  const [honeypot, setHoneypot] = useState('')  // champ invisible anti-bot
+  const [turnstileToken, setTurnstileToken] = useState('')
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
+
+  const onTurnstileVerify = useCallback((token: string) => setTurnstileToken(token), [])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    const email = toEmail(identifiant)
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      toast.error('Identifiants incorrects')
-      setLoading(false)
-      return
-    }
 
-    const next = new URLSearchParams(window.location.search).get('next')
-    const destination = next ?? '/dashboard'
-    window.location.href = destination
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifiant, password, turnstileToken, honeypot }),
+      })
+      const json = await res.json()
+
+      if (!res.ok) {
+        toast.error(json.error ?? 'Identifiants incorrects')
+        setLoading(false)
+        return
+      }
+
+      // Restaurer la session Supabase côté client à partir des tokens
+      await supabase.auth.setSession({
+        access_token: json.access_token,
+        refresh_token: json.refresh_token,
+      })
+
+      const next = new URLSearchParams(window.location.search).get('next')
+      window.location.href = next ?? '/dashboard'
+    } catch {
+      toast.error('Erreur réseau, réessayez.')
+      setLoading(false)
+    }
   }
+
+  const inputStyle = {
+    width: '100%',
+    padding: '0.65rem 0.875rem',
+    background: 'rgba(255,255,255,0.70)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    border: '1px solid rgba(4,67,154,0.18)',
+    borderRadius: '0.625rem',
+    fontSize: '0.875rem',
+    color: '#1a1a2e',
+    outline: 'none',
+    transition: 'border-color 0.15s, box-shadow 0.15s',
+  } as React.CSSProperties
 
   return (
     <div className="min-h-screen flex relative" style={{ background: '#eef2ff' }}>
@@ -98,6 +129,18 @@ export default function LoginPage() {
             </div>
 
             <form onSubmit={handleLogin} className="space-y-5">
+              {/* Champ honeypot — invisible pour les humains, rempli par les bots */}
+              <input
+                type="text"
+                name="website"
+                value={honeypot}
+                onChange={e => setHoneypot(e.target.value)}
+                autoComplete="off"
+                tabIndex={-1}
+                aria-hidden="true"
+                style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, width: 0 }}
+              />
+
               <div>
                 <label className="label">Identifiant</label>
                 <input
@@ -108,19 +151,7 @@ export default function LoginPage() {
                   required
                   autoComplete="username"
                   autoFocus
-                  style={{
-                    width: '100%',
-                    padding: '0.65rem 0.875rem',
-                    background: 'rgba(255,255,255,0.70)',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
-                    border: '1px solid rgba(4,67,154,0.18)',
-                    borderRadius: '0.625rem',
-                    fontSize: '0.875rem',
-                    color: '#1a1a2e',
-                    outline: 'none',
-                    transition: 'border-color 0.15s, box-shadow 0.15s',
-                  }}
+                  style={inputStyle}
                   onFocus={e => { e.target.style.borderColor = 'rgba(4,67,154,0.5)'; e.target.style.boxShadow = '0 0 0 3px rgba(4,67,154,0.08)' }}
                   onBlur={e => { e.target.style.borderColor = 'rgba(4,67,154,0.18)'; e.target.style.boxShadow = 'none' }}
                 />
@@ -137,23 +168,15 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   required
                   autoComplete="current-password"
-                  style={{
-                    width: '100%',
-                    padding: '0.65rem 0.875rem',
-                    background: 'rgba(255,255,255,0.70)',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
-                    border: '1px solid rgba(4,67,154,0.18)',
-                    borderRadius: '0.625rem',
-                    fontSize: '0.875rem',
-                    color: '#1a1a2e',
-                    outline: 'none',
-                    transition: 'border-color 0.15s, box-shadow 0.15s',
-                  }}
+                  style={inputStyle}
                   onFocus={e => { e.target.style.borderColor = 'rgba(4,67,154,0.5)'; e.target.style.boxShadow = '0 0 0 3px rgba(4,67,154,0.08)' }}
                   onBlur={e => { e.target.style.borderColor = 'rgba(4,67,154,0.18)'; e.target.style.boxShadow = 'none' }}
                 />
               </div>
+
+              {/* Widget Turnstile (visible uniquement si NEXT_PUBLIC_TURNSTILE_SITE_KEY est défini) */}
+              <TurnstileWidget onVerify={onTurnstileVerify} />
+
               <button type="submit" disabled={loading} className="btn-primary w-full py-3 text-base">
                 {loading ? 'Connexion...' : 'Se connecter →'}
               </button>

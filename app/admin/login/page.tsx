@@ -1,48 +1,64 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { Lock } from 'lucide-react'
 import toast from 'react-hot-toast'
-
-const DOMAIN = '@assemblee-pel.fr'
-const toEmail = (identifiant: string) =>
-  identifiant.includes('@') ? identifiant : `${identifiant.trim().toLowerCase()}${DOMAIN}`
+import TurnstileWidget from '@/components/TurnstileWidget'
 
 export default function AdminLoginPage() {
   const [identifiant, setIdentifiant] = useState('')
   const [password, setPassword] = useState('')
+  const [honeypot, setHoneypot] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState('')
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
+
+  const onTurnstileVerify = useCallback((token: string) => setTurnstileToken(token), [])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
 
-    const email = toEmail(identifiant)
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifiant, password, turnstileToken, honeypot }),
+      })
+      const json = await res.json()
 
-    if (error) {
-      toast.error('Identifiants incorrects')
+      if (!res.ok) {
+        toast.error(json.error ?? 'Identifiants incorrects')
+        setLoading(false)
+        return
+      }
+
+      await supabase.auth.setSession({
+        access_token: json.access_token,
+        refresh_token: json.refresh_token,
+      })
+
+      // Vérifier le rôle admin
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', json.user.id)
+        .single()
+
+      if (profile?.role !== 'president_seance') {
+        await supabase.auth.signOut()
+        toast.error("Accès non autorisé à l'espace administration")
+        setLoading(false)
+        return
+      }
+
+      window.location.href = '/admin'
+    } catch {
+      toast.error('Erreur réseau, réessayez.')
       setLoading(false)
-      return
     }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .single()
-
-    if (profile?.role !== 'president_seance') {
-      await supabase.auth.signOut()
-      toast.error('Accès non autorisé à l\'espace administration')
-      setLoading(false)
-      return
-    }
-
-    window.location.href = '/admin'
   }
 
   return (
@@ -74,6 +90,18 @@ export default function AdminLoginPage() {
         {/* Formulaire */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <form onSubmit={handleLogin} className="space-y-4">
+            {/* Honeypot — invisible pour les humains */}
+            <input
+              type="text"
+              name="website"
+              value={honeypot}
+              onChange={e => setHoneypot(e.target.value)}
+              autoComplete="off"
+              tabIndex={-1}
+              aria-hidden="true"
+              style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, width: 0 }}
+            />
+
             <div>
               <label className="label">Identifiant</label>
               <input
@@ -99,6 +127,9 @@ export default function AdminLoginPage() {
                 autoComplete="current-password"
               />
             </div>
+
+            <TurnstileWidget onVerify={onTurnstileVerify} />
+
             <button
               type="submit"
               disabled={loading}
