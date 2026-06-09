@@ -59,6 +59,7 @@ export default function AccessibilityMenu() {
 
   return (
     <div
+      id="accessibility-menu"
       style={{
         position: 'fixed',
         bottom: '1.5rem',

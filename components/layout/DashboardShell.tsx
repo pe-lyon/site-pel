@@ -6,6 +6,7 @@ import { UserRole } from '@/types'
 import { X } from 'lucide-react'
 import FloatingGroupeChat from '@/components/FloatingGroupeChat'
 import NotificationManager from '@/components/NotificationManager'
+import AccessibilityMenu from '@/components/site/AccessibilityMenu'
 
 interface Props {
   role: UserRole
@@ -64,6 +65,7 @@ export default function DashboardShell({ role, firstName, lastName, children }: 
       {/* Chat flottant groupe */}
       <FloatingGroupeChat />
       <NotificationManager />
+      <AccessibilityMenu />
     </div>
   )
 }
