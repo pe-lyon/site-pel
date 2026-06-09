@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { Mail, MapPin, Instagram, Linkedin } from 'lucide-react'
 import toast from 'react-hot-toast'
+import SiteHero from '@/components/site/SiteHero'
 
 export default function ContactPage() {
   const [form, setForm] = useState({ nom: '', email: '', objet: '', message: '' })
@@ -33,23 +34,11 @@ export default function ContactPage() {
 
   return (
     <div>
-      <section
-        style={{
-          background: 'var(--pel-bleu)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-        className="py-20"
-      >
-        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <div className="animate-orb" style={{ position: 'absolute', width: 340, height: 340, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', filter: 'blur(60px)', top: '-80px', right: '10%' }} />
-          <div className="animate-orb-reverse" style={{ position: 'absolute', width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', filter: 'blur(40px)', bottom: '-60px', left: '5%' }} />
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <p className="text-blue-200 text-sm mb-2" style={{ fontFamily: 'var(--font-corps)' }}>Nous écrire</p>
-          <h1 className="text-white" style={{ fontFamily: 'var(--font-titre)', fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 700 }}>CONTACT</h1>
-        </div>
-      </section>
+      <SiteHero
+        badge="Nous contacter"
+        title="Contact"
+        description="Une question ? Une suggestion ? Écrivez-nous."
+      />
 
       <section className="py-20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -66,7 +55,7 @@ export default function ContactPage() {
                 padding: '2rem',
               }}
             >
-              <h2 className="mb-6" style={{ fontFamily: 'var(--font-titre)', fontSize: '2rem', color: 'var(--pel-bleu)', fontWeight: 700 }}>ENVOYEZ-NOUS UN MESSAGE</h2>
+              <h2 className="mb-6" style={{ fontFamily: 'var(--font-titre)', fontSize: '2rem', color: 'var(--pel-bleu)', fontWeight: 700, textAlign: 'center' }}>ENVOYEZ-NOUS UN MESSAGE</h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -105,7 +94,7 @@ export default function ContactPage() {
                   padding: '2rem',
                 }}
               >
-                <h2 className="mb-6" style={{ fontFamily: 'var(--font-titre)', fontSize: '2rem', color: 'var(--pel-bleu)', fontWeight: 700 }}>NOS COORDONNÉES</h2>
+                <h2 className="mb-6" style={{ fontFamily: 'var(--font-titre)', fontSize: '2rem', color: 'var(--pel-bleu)', fontWeight: 700, textAlign: 'center' }}>NOS COORDONNÉES</h2>
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--pel-bleu-light)' }}>

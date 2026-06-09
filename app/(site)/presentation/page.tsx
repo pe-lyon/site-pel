@@ -1,4 +1,5 @@
 import { getSettings, getTimeline } from '@/lib/cms'
+import SiteHero from '@/components/site/SiteHero'
 
 export const revalidate = 60
 
@@ -19,25 +20,11 @@ export default async function PresentationPage() {
 
   return (
     <div>
-      {/* Bandeau hero */}
-      <section
-        style={{
-          background: 'var(--pel-bleu)',
-          position: 'relative',
-          overflow: 'hidden',
-          backdropFilter: 'blur(0px)',
-        }}
-        className="pt-28 pb-20"
-      >
-        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <div className="animate-orb" style={{ position: 'absolute', width: 340, height: 340, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', filter: 'blur(60px)', top: '-80px', right: '10%' }} />
-          <div className="animate-orb-reverse" style={{ position: 'absolute', width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', filter: 'blur(40px)', bottom: '-60px', left: '5%' }} />
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <p className="text-blue-200 text-sm mb-2" style={{ fontFamily: 'var(--font-corps)' }}>Notre institution</p>
-          <h1 className="text-white" style={{ fontFamily: 'var(--font-titre)', fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 700 }}>PRÉSENTATION</h1>
-        </div>
-      </section>
+      <SiteHero
+        badge="Notre institution"
+        title="Présentation"
+        description="Découvrez l'histoire, la mission et les valeurs du Parlement des Étudiants de Lyon."
+      />
 
       {/* Mission */}
       <section className="py-20">
@@ -53,7 +40,7 @@ export default async function PresentationPage() {
               padding: '2.5rem',
             }}
           >
-            <h2 className="mb-8" style={{ fontFamily: 'var(--font-titre)', fontSize: '2.5rem', color: 'var(--pel-bleu)', fontWeight: 700 }}>NOTRE MISSION</h2>
+            <h2 className="mb-8" style={{ fontFamily: 'var(--font-titre)', fontSize: '2.5rem', color: 'var(--pel-bleu)', fontWeight: 700, textAlign: 'center' }}>NOTRE MISSION</h2>
             {missionText ? (
               <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed" style={{ fontFamily: 'var(--font-corps)' }}>
                 {missionText.split('\n').filter(Boolean).map((p, i) => (
@@ -62,9 +49,9 @@ export default async function PresentationPage() {
               </div>
             ) : (
               <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed space-y-4" style={{ fontFamily: 'var(--font-corps)' }}>
-                <p>Le Parlement des Étudiants de Lyon est une institution parlementaire étudiante fondée sur les principes de la démocratie représentative. Il réunit des étudiants de toutes disciplines pour débattre, voter et légiférer sur des propositions de loi, dans le respect des règles parlementaires.</p>
-                <p>Notre objectif est de former les étudiants aux mécanismes de la démocratie, du débat parlementaire et de la vie politique institutionnelle, tout en développant leurs compétences oratoires, leur esprit critique et leur sens du collectif.</p>
-                <p>Chaque séance plénière est l&apos;occasion pour les parlementaires de défendre leurs convictions, d&apos;écouter les arguments de l&apos;opposition et de voter des textes qui engagent l&apos;ensemble de l&apos;institution.</p>
+                <p style={{ textAlign: 'justify' }}>Le Parlement des Étudiants de Lyon est une institution parlementaire étudiante fondée sur les principes de la démocratie représentative. Il réunit des étudiants de toutes disciplines pour débattre, voter et légiférer sur des propositions de loi, dans le respect des règles parlementaires.</p>
+                <p style={{ textAlign: 'justify' }}>Notre objectif est de former les étudiants aux mécanismes de la démocratie, du débat parlementaire et de la vie politique institutionnelle, tout en développant leurs compétences oratoires, leur esprit critique et leur sens du collectif.</p>
+                <p style={{ textAlign: 'justify' }}>Chaque séance plénière est l&apos;occasion pour les parlementaires de défendre leurs convictions, d&apos;écouter les arguments de l&apos;opposition et de voter des textes qui engagent l&apos;ensemble de l&apos;institution.</p>
               </div>
             )}
           </div>
@@ -74,7 +61,7 @@ export default async function PresentationPage() {
       {/* Timeline */}
       <section className="py-20" style={{ background: 'rgba(4,67,154,0.03)' }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="mb-12" style={{ fontFamily: 'var(--font-titre)', fontSize: '2.5rem', color: 'var(--pel-bleu)', fontWeight: 700 }}>NOTRE HISTOIRE</h2>
+          <h2 className="mb-12" style={{ fontFamily: 'var(--font-titre)', fontSize: '2.5rem', color: 'var(--pel-bleu)', fontWeight: 700, textAlign: 'center' }}>NOTRE HISTOIRE</h2>
           {timeline.length > 0 ? (
             <div className="relative">
               <div className="absolute left-8 top-0 bottom-0 w-px bg-blue-200/50" />

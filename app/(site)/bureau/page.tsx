@@ -1,4 +1,5 @@
 import { getBureauMembres } from '@/lib/cms'
+import SiteHero from '@/components/site/SiteHero'
 import { getInitials } from '@/lib/utils'
 import { Mail, Linkedin } from 'lucide-react'
 
@@ -30,24 +31,11 @@ export default async function BureauPage() {
 
   return (
     <div>
-      <section
-        style={{
-          background: 'var(--pel-bleu)',
-          position: 'relative',
-          overflow: 'hidden',
-          marginTop: '-1px',
-        }}
-        className="pt-28 pb-20"
-      >
-        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <div className="animate-orb" style={{ position: 'absolute', width: 340, height: 340, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', filter: 'blur(60px)', top: '-80px', right: '10%' }} />
-          <div className="animate-orb-reverse" style={{ position: 'absolute', width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', filter: 'blur(40px)', bottom: '-60px', left: '5%' }} />
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <p className="text-blue-200 text-sm mb-2" style={{ fontFamily: 'var(--font-corps)' }}>L&apos;équipe dirigeante</p>
-          <h1 className="text-white" style={{ fontFamily: 'var(--font-titre)', fontSize: 'clamp(2.5rem,6vw,5rem)', fontWeight: 700 }}>LE BUREAU</h1>
-        </div>
-      </section>
+      <SiteHero
+        badge="L'équipe dirigeante"
+        title="Le Bureau"
+        description="Les membres élus qui dirigent le Parlement des Étudiants de Lyon."
+      />
 
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -62,7 +50,7 @@ export default async function BureauPage() {
               {sections.map(sec => (
                 <div key={sec}>
                   {sec !== '__sans_section__' && (
-                    <h2 style={{ fontFamily: 'var(--font-titre)', fontSize: '1.4rem', color: 'var(--pel-bleu)', fontWeight: 700, marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: '2px solid rgba(4,67,154,0.15)' }}>
+                    <h2 style={{ fontFamily: 'var(--font-titre)', fontSize: '1.4rem', color: 'var(--pel-bleu)', fontWeight: 700, marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: '2px solid rgba(4,67,154,0.15)', textAlign: 'center' }}>
                       {sec.toUpperCase()}
                     </h2>
                   )}
