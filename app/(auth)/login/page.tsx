@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [honeypot, setHoneypot] = useState('')  // champ invisible anti-bot
   const [turnstileToken, setTurnstileToken] = useState('')
   const [loading, setLoading] = useState(false)
+  const hasTurnstile = !!(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY !== 'CONFIGURE_ME')
   const supabase = createClient()
 
   const onTurnstileVerify = useCallback((token: string) => setTurnstileToken(token), [])
@@ -177,8 +178,8 @@ export default function LoginPage() {
               {/* Widget Turnstile (visible uniquement si NEXT_PUBLIC_TURNSTILE_SITE_KEY est défini) */}
               <TurnstileWidget onVerify={onTurnstileVerify} />
 
-              <button type="submit" disabled={loading} className="btn-primary w-full py-3 text-base">
-                {loading ? 'Connexion...' : 'Se connecter →'}
+              <button type="submit" disabled={loading || (hasTurnstile && !turnstileToken)} className="btn-primary w-full py-3 text-base">
+                {loading ? 'Connexion...' : hasTurnstile && !turnstileToken ? 'Vérification en cours...' : 'Se connecter →'}
               </button>
             </form>
 

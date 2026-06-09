@@ -13,6 +13,7 @@ export default function AdminLoginPage() {
   const [honeypot, setHoneypot] = useState('')
   const [turnstileToken, setTurnstileToken] = useState('')
   const [loading, setLoading] = useState(false)
+  const hasTurnstile = !!(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY !== 'CONFIGURE_ME')
   const supabase = createClient()
 
   const onTurnstileVerify = useCallback((token: string) => setTurnstileToken(token), [])
@@ -132,10 +133,10 @@ export default function AdminLoginPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (hasTurnstile && !turnstileToken)}
               className="btn-secondary w-full py-2.5 mt-2"
             >
-              {loading ? 'Connexion...' : 'Accéder au panel →'}
+              {loading ? 'Connexion...' : hasTurnstile && !turnstileToken ? 'Vérification...' : 'Accéder au panel →'}
             </button>
           </form>
         </div>
