@@ -33,6 +33,7 @@ export async function updateSession(request: NextRequest) {
     '/actualites', '/agenda', '/ressources', '/contact',
     '/journal-officiel', '/loi', '/parlementaires', '/resultats',
     '/seance', '/login', '/admin/login', '/auth/callback', '/mot-de-passe-oublie',
+    '/api/auth', '/api/public',
   ]
   const isPublic = publicPrefixes.some(prefix =>
     pathname === prefix || (prefix !== '/' && pathname.startsWith(prefix + '/'))
