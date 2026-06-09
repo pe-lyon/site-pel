@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { formatDate, formatDateTime } from '@/lib/utils'
@@ -58,7 +58,8 @@ interface Orateur {
 }
 
 export default function PresidentRecevabilitePage() {
-  const supabase = createClient()
+  const supabaseRef = useRef(createClient())
+  const supabase = supabaseRef.current
   const router = useRouter()
 
   const [loading, setLoading] = useState(true)
@@ -68,7 +69,10 @@ export default function PresidentRecevabilitePage() {
   const [orateurs, setOrateurs] = useState<Orateur[]>([])
   const [motifMap, setMotifMap] = useState<Record<string, string>>({})
 
-  const load = useCallback(async () => {
+  const [refreshTick, setRefreshTick] = useState(0)
+  function refresh() { setRefreshTick(t => t + 1) }
+
+  const load = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
@@ -104,20 +108,22 @@ export default function PresidentRecevabilitePage() {
     } catch { /* tables pas encore créées */ }
 
     setLoading(false)
-  }, [supabase, router])
+  }
 
-  useEffect(() => { load() }, [load])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { load() }, [refreshTick])
 
   useEffect(() => {
     const channel = supabase
       .channel('president-dashboard')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'bills' }, load)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'motions_procedure' }, load)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'amendements' }, load)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'liste_orateurs' }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bills' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'motions_procedure' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'amendements' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'liste_orateurs' }, refresh)
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [supabase, load])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleRecevabilite(bill: Bill, recevabilite: 'recevable' | 'irrecevable') {
     const { data: { user } } = await supabase.auth.getUser()
@@ -132,7 +138,7 @@ export default function PresidentRecevabilitePage() {
     if (error) { toast.error(error.message); return }
     toast.success(recevabilite === 'recevable' ? '✅ Déclarée recevable' : '❌ Déclarée irrecevable')
     setMotifMap(prev => { const n = { ...prev }; delete n[bill.id]; return n })
-    load()
+    refresh()
   }
 
   async function handleAdvance(billId: string, newStatus: BillStatus) {
@@ -143,7 +149,7 @@ export default function PresidentRecevabilitePage() {
     const { error } = await supabase.from('bills').update(updates).eq('id', billId)
     if (error) { toast.error(error.message); return }
     toast.success(`Statut : ${STATUS_LABELS[newStatus]}`)
-    load()
+    refresh()
   }
 
   async function handleUrgence(bill: Bill) {
@@ -155,7 +161,7 @@ export default function PresidentRecevabilitePage() {
     }).eq('id', bill.id)
     if (error) { toast.error(error.message); return }
     toast.success(bill.procedure_urgence ? 'Procédure d\'urgence levée' : 'Procédure d\'urgence activée ⚡')
-    load()
+    refresh()
   }
 
   async function handleMotion(id: string, statut: 'acceptee' | 'refusee') {
@@ -167,7 +173,7 @@ export default function PresidentRecevabilitePage() {
     }).eq('id', id)
     if (error) { toast.error(error.message); return }
     toast.success(statut === 'acceptee' ? 'Motion acceptée' : 'Motion refusée')
-    load()
+    refresh()
   }
 
   async function handleAmendement(id: string, statut: 'recevable' | 'irrecevable') {
@@ -179,13 +185,13 @@ export default function PresidentRecevabilitePage() {
     }).eq('id', id)
     if (error) { toast.error(error.message); return }
     toast.success(statut === 'recevable' ? 'Amendement recevable' : 'Amendement irrecevable')
-    load()
+    refresh()
   }
 
   async function handleOrateurAParle(id: string) {
     const { error } = await supabase.from('liste_orateurs').update({ a_parle: true }).eq('id', id)
     if (error) { toast.error(error.message); return }
-    load()
+    refresh()
   }
 
   const pendingRecevabilite = bills.filter(b => b.status === 'deposee')

@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, use, useCallback } from 'react'
+import { useState, useEffect, use, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import {
   ArrowLeft, Calendar, User, FileText, Users, PenLine, X,
-  Gavel, MessageSquare, Clock, AlertTriangle, CheckCircle,
+  Gavel, MessageSquare, AlertTriangle, CheckCircle,
   XCircle, BookOpen, Mic, MicOff, Zap, ChevronDown, ChevronUp, Plus, Send,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -38,9 +38,9 @@ interface Bill {
   author_id: string | null
   status: BillStatus
   type: string | null
-  recevabilite: string | null
-  motif_irrecevabilite: string | null
-  procedure_urgence: boolean
+  recevabilite?: string | null
+  motif_irrecevabilite?: string | null
+  procedure_urgence?: boolean
   created_at: string
   updated_at: string
   profiles: Profile | null
@@ -94,7 +94,9 @@ interface VoteSession {
 
 export default function PropositionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const supabase = createClient()
+  // Supabase client stable (ne change pas entre renders)
+  const supabaseRef = useRef(createClient())
+  const supabase = supabaseRef.current
   const router = useRouter()
 
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -106,6 +108,7 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
   const [motions, setMotions] = useState<Motion[]>([])
   const [loading, setLoading] = useState(true)
   const [cosigning, setCosigning] = useState(false)
+  const [refreshTick, setRefreshTick] = useState(0)
 
   // Formulaire amendement
   const [showAmendForm, setShowAmendForm] = useState(false)
@@ -123,61 +126,72 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
   const [showOrateurs, setShowOrateurs] = useState(true)
   const [showMotions, setShowMotions] = useState(false)
 
-  const isPresSéance = profile?.role === 'president_seance'
-  const isEligible = profile ? ELIGIBLE_ROLES.includes(profile.role) : false
+  // Chargement principal — pattern simple sans useCallback pour éviter boucle
+  useEffect(() => {
+    let cancelled = false
 
-  const load = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/login'); return }
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
 
-    const [profileRes, billRes, cosRes, sessRes] = await Promise.all([
-      supabase.from('profiles').select('id, first_name, last_name, role, group_id').eq('id', user.id).single(),
-      supabase.from('bills').select('*, profiles(id, first_name, last_name, role, group_id)').eq('id', id).single(),
-      supabase.from('bill_cosignataires').select('id, user_id, signed_at, profiles(first_name, last_name, role)').eq('bill_id', id).order('signed_at'),
-      supabase.from('vote_sessions').select('id, title, opened_at, closed_at, status').eq('bill_id', id).order('created_at', { ascending: false }),
-    ])
-
-    if (billRes.error || !billRes.data) { router.push('/propositions'); return }
-
-    setProfile(profileRes.data)
-    setBill(billRes.data as unknown as Bill)
-    setCosignataires((cosRes.data as unknown as Cosignataire[]) ?? [])
-    setSessions((sessRes.data as VoteSession[]) ?? [])
-
-    // Nouvelles tables (requièrent la migration — silencieuses si absentes)
-    try {
-      const [amendRes, oratRes, motRes] = await Promise.all([
-        supabase.from('amendements').select('*, profiles(first_name, last_name)').eq('bill_id', id).order('created_at'),
-        supabase.from('liste_orateurs').select('*, profiles(first_name, last_name, group_id)').eq('bill_id', id).order('position'),
-        supabase.from('motions_procedure').select('*, profiles(first_name, last_name)').eq('bill_id', id).order('created_at', { ascending: false }),
+      const [profileRes, billRes, cosRes, sessRes] = await Promise.all([
+        supabase.from('profiles').select('id, first_name, last_name, role, group_id').eq('id', user.id).single(),
+        supabase.from('bills').select('*, profiles(id, first_name, last_name, role, group_id)').eq('id', id).single(),
+        supabase.from('bill_cosignataires').select('id, user_id, signed_at, profiles(first_name, last_name, role)').eq('bill_id', id).order('signed_at'),
+        supabase.from('vote_sessions').select('id, title, opened_at, closed_at, status').eq('bill_id', id).order('created_at', { ascending: false }),
       ])
-      if (!amendRes.error) setAmendements((amendRes.data as unknown as Amendement[]) ?? [])
-      if (!oratRes.error) setOrateurs((oratRes.data as unknown as Orateur[]) ?? [])
-      if (!motRes.error) setMotions((motRes.data as unknown as Motion[]) ?? [])
-    } catch { /* tables pas encore créées */ }
 
-    setLoading(false)
-  }, [id, supabase, router])
+      if (cancelled) return
+      if (billRes.error || !billRes.data) { router.push('/propositions'); return }
 
-  useEffect(() => { load() }, [load])
+      setProfile(profileRes.data)
+      setBill(billRes.data as unknown as Bill)
+      setCosignataires((cosRes.data as unknown as Cosignataire[]) ?? [])
+      setSessions((sessRes.data as VoteSession[]) ?? [])
 
-  // Realtime
+      // Nouvelles tables — silencieuses si migration pas encore appliquée
+      try {
+        const [amendRes, oratRes, motRes] = await Promise.all([
+          supabase.from('amendements').select('*, profiles(first_name, last_name)').eq('bill_id', id).order('created_at'),
+          supabase.from('liste_orateurs').select('*, profiles(first_name, last_name, group_id)').eq('bill_id', id).order('position'),
+          supabase.from('motions_procedure').select('*, profiles(first_name, last_name)').eq('bill_id', id).order('created_at', { ascending: false }),
+        ])
+        if (!cancelled) {
+          if (!amendRes.error) setAmendements((amendRes.data as unknown as Amendement[]) ?? [])
+          if (!oratRes.error) setOrateurs((oratRes.data as unknown as Orateur[]) ?? [])
+          if (!motRes.error) setMotions((motRes.data as unknown as Motion[]) ?? [])
+        }
+      } catch { /* tables pas encore créées */ }
+
+      if (!cancelled) setLoading(false)
+    }
+
+    load()
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, refreshTick])
+
+  function refresh() { setRefreshTick(t => t + 1) }
+
+  // Realtime sur bills uniquement
   useEffect(() => {
     if (!id) return
     const channel = supabase
-      .channel(`bill-${id}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bills', filter: `id=eq.${id}` }, () => load())
+      .channel(`bill-${id}-${Date.now()}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bills', filter: `id=eq.${id}` }, refresh)
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [id, supabase, load])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
 
+  const isPresSéance = profile?.role === 'president_seance'
+  const isEligible = profile ? ELIGIBLE_ROLES.includes(profile.role) : false
   const currentUserCosign = profile ? cosignataires.find(c => c.user_id === profile.id) : null
   const canCosign = profile && bill &&
     bill.author_id !== profile.id &&
     isEligible &&
     COSIGN_STATUSES.includes(bill.status) &&
     !currentUserCosign
-
   const isInscritOrateur = profile ? orateurs.find(o => o.orateur_id === profile.id) : null
   const canSInscrireOrateur = profile && bill && bill.status === 'en_debat' && !isInscritOrateur && isEligible
 
@@ -188,7 +202,7 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
       const { error } = await supabase.from('bill_cosignataires').insert({ bill_id: bill.id, user_id: profile.id })
       if (error) throw error
       toast.success('Co-signature ajoutée')
-      load()
+      refresh()
     } catch (err: unknown) { toast.error((err as Error).message ?? 'Erreur') }
     finally { setCosigning(false) }
   }
@@ -200,60 +214,44 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
       const { error } = await supabase.from('bill_cosignataires').delete().eq('id', currentUserCosign.id)
       if (error) throw error
       toast.success('Co-signature retirée')
-      load()
+      refresh()
     } catch (err: unknown) { toast.error((err as Error).message ?? 'Erreur') }
     finally { setCosigning(false) }
   }
 
   async function handleSubmitAmendement() {
     if (!profile || !bill) return
-    if (!amendForm.titre.trim() || !amendForm.texte.trim()) {
-      toast.error('Titre et texte obligatoires')
-      return
-    }
+    if (!amendForm.titre.trim() || !amendForm.texte.trim()) { toast.error('Titre et texte obligatoires'); return }
     setSavingAmend(true)
     try {
-      const count = amendements.length + 1
-      const numero = `AMD-${bill.number}-${String(count).padStart(2, '0')}`
+      const numero = `AMD-${bill.number}-${String(amendements.length + 1).padStart(2, '0')}`
       const { error } = await supabase.from('amendements').insert({
-        bill_id: bill.id,
-        auteur_id: profile.id,
-        numero,
-        titre: amendForm.titre.trim(),
-        texte: amendForm.texte.trim(),
+        bill_id: bill.id, auteur_id: profile.id, numero,
+        titre: amendForm.titre.trim(), texte: amendForm.texte.trim(),
         article_vise: amendForm.article_vise.trim() || null,
       })
       if (error) throw error
       toast.success('Amendement déposé')
       setAmendForm({ titre: '', texte: '', article_vise: '' })
       setShowAmendForm(false)
-      load()
+      refresh()
     } catch (err: unknown) { toast.error((err as Error).message ?? 'Erreur') }
     finally { setSavingAmend(false) }
   }
 
   async function handleAmendStatut(amendId: string, statut: AmendementStatut) {
-    const { error } = await supabase.from('amendements').update({
-      statut,
-      traite_par: profile?.id,
-      traite_le: new Date().toISOString(),
-    }).eq('id', amendId)
+    const { error } = await supabase.from('amendements').update({ statut, traite_par: profile?.id, traite_le: new Date().toISOString() }).eq('id', amendId)
     if (error) { toast.error('Erreur'); return }
     toast.success(`Amendement : ${AMENDEMENT_STATUT_LABELS[statut]}`)
-    load()
+    refresh()
   }
 
   async function handleSInscrireOrateur() {
     if (!profile || !bill) return
-    const pos = orateurs.length + 1
-    const { error } = await supabase.from('liste_orateurs').insert({
-      bill_id: bill.id,
-      orateur_id: profile.id,
-      position: pos,
-    })
+    const { error } = await supabase.from('liste_orateurs').insert({ bill_id: bill.id, orateur_id: profile.id, position: orateurs.length + 1 })
     if (error) { toast.error(error.message); return }
     toast.success('Inscrit sur la liste des orateurs')
-    load()
+    refresh()
   }
 
   async function handleSeDesinscrireOrateur() {
@@ -261,14 +259,13 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
     const { error } = await supabase.from('liste_orateurs').delete().eq('id', isInscritOrateur.id)
     if (error) { toast.error('Erreur'); return }
     toast.success('Désinscrit de la liste')
-    load()
+    refresh()
   }
 
   async function handleOrateurAParle(orateurId: string) {
-    if (!isPresSéance || !bill) return
     const { error } = await supabase.from('liste_orateurs').update({ a_parle: true }).eq('id', orateurId)
     if (error) { toast.error('Erreur'); return }
-    load()
+    refresh()
   }
 
   async function handleSubmitMotion() {
@@ -276,32 +273,25 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
     setSavingMotion(true)
     try {
       const { error } = await supabase.from('motions_procedure').insert({
-        bill_id: bill.id,
-        auteur_id: profile.id,
-        type: motionType,
+        bill_id: bill.id, auteur_id: profile.id, type: motionType,
         motif: motionMotif.trim() || null,
       })
       if (error) throw error
       toast.success('Motion soumise au président de séance')
       setMotionMotif('')
       setShowMotionForm(false)
-      load()
+      refresh()
     } catch (err: unknown) { toast.error((err as Error).message ?? 'Erreur') }
     finally { setSavingMotion(false) }
   }
 
   async function handleMotionStatut(motionId: string, statut: 'acceptee' | 'refusee') {
-    const { error } = await supabase.from('motions_procedure').update({
-      statut,
-      traite_par: profile?.id,
-      traite_le: new Date().toISOString(),
-    }).eq('id', motionId)
+    const { error } = await supabase.from('motions_procedure').update({ statut, traite_par: profile?.id, traite_le: new Date().toISOString() }).eq('id', motionId)
     if (error) { toast.error('Erreur'); return }
     toast.success(statut === 'acceptee' ? 'Motion acceptée' : 'Motion refusée')
-    load()
+    refresh()
   }
 
-  // Président: avancer le statut
   async function handleAdvanceStatus(newStatus: BillStatus) {
     if (!isPresSéance || !bill) return
     const updates: Record<string, unknown> = { status: newStatus }
@@ -311,7 +301,7 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
     const { error } = await supabase.from('bills').update(updates).eq('id', bill.id)
     if (error) { toast.error('Erreur'); return }
     toast.success(`Statut : ${STATUS_LABELS[newStatus]}`)
-    load()
+    refresh()
   }
 
   async function handleUrgence() {
@@ -322,8 +312,8 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
       urgence_le: new Date().toISOString(),
     }).eq('id', bill.id)
     if (error) { toast.error('Erreur'); return }
-    toast.success(bill.procedure_urgence ? 'Procédure d\'urgence levée' : 'Procédure d\'urgence activée')
-    load()
+    toast.success(bill.procedure_urgence ? "Procédure d'urgence levée" : "Procédure d'urgence activée ⚡")
+    refresh()
   }
 
   if (loading) return (
@@ -352,18 +342,18 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <span className="text-sm font-mono text-gray-400">{bill.number}</span>
-                <span className={`badge ${STATUS_COLORS[bill.status]}`}>{STATUS_LABELS[bill.status]}</span>
+                <span className={`badge ${STATUS_COLORS[bill.status] ?? 'bg-gray-100 text-gray-700'}`}>
+                  {STATUS_LABELS[bill.status] ?? bill.status}
+                </span>
                 {bill.type && <span className="badge bg-indigo-100 text-indigo-700 text-xs">{TYPE_LABELS[bill.type] ?? bill.type}</span>}
                 {bill.procedure_urgence && (
                   <span className="badge bg-orange-100 text-orange-700 text-xs flex items-center gap-1">
-                    <Zap size={11} />
-                    Procédure d&apos;urgence
+                    <Zap size={11} />Procédure d&apos;urgence
                   </span>
                 )}
                 {bill.recevabilite === 'irrecevable' && (
                   <span className="badge bg-red-100 text-red-700 text-xs flex items-center gap-1">
-                    <XCircle size={11} />
-                    Irrecevable
+                    <XCircle size={11} />Irrecevable
                   </span>
                 )}
               </div>
@@ -403,54 +393,46 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
             )}
           </div>
 
-          {/* Boutons président de séance */}
+          {/* Pouvoirs président de séance */}
           {isPresSéance && (
             <div className="mt-5 pt-5 border-t border-gray-100">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <Gavel size={13} />
-                Pouvoirs du Président de séance
+                <Gavel size={13} />Pouvoirs du Président de séance
               </p>
               <div className="flex flex-wrap gap-2">
                 {bill.status === 'recevable' && (
                   <button onClick={() => handleAdvanceStatus('inscrit_ordre_du_jour')} className="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5">
-                    <BookOpen size={13} />
-                    Inscrire à l&apos;ordre du jour
+                    <BookOpen size={13} />Inscrire à l&apos;ordre du jour
                   </button>
                 )}
                 {bill.status === 'inscrit_ordre_du_jour' && (
                   <button onClick={() => handleAdvanceStatus('en_debat')} className="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5">
-                    <MessageSquare size={13} />
-                    Ouvrir le débat
+                    <MessageSquare size={13} />Ouvrir le débat
                   </button>
                 )}
                 {bill.status === 'en_debat' && (
                   <>
                     <button onClick={() => handleAdvanceStatus('soumis_au_vote')} className="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5">
-                      <Gavel size={13} />
-                      Clore le débat → Vote
+                      <Gavel size={13} />Clore le débat → Vote
                     </button>
                     <button onClick={() => handleAdvanceStatus('renvoyee')} className="text-xs py-1.5 px-3 flex items-center gap-1.5 border border-orange-200 text-orange-700 rounded-lg hover:bg-orange-50">
-                      <ArrowLeft size={13} />
-                      Renvoyer
+                      <ArrowLeft size={13} />Renvoyer
                     </button>
                   </>
                 )}
                 {bill.status === 'soumis_au_vote' && (
                   <>
                     <button onClick={() => handleAdvanceStatus('adoptee')} className="text-xs py-1.5 px-3 flex items-center gap-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                      <CheckCircle size={13} />
-                      Adoptée
+                      <CheckCircle size={13} />Adoptée
                     </button>
                     <button onClick={() => handleAdvanceStatus('rejetee')} className="text-xs py-1.5 px-3 flex items-center gap-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                      <XCircle size={13} />
-                      Rejetée
+                      <XCircle size={13} />Rejetée
                     </button>
                   </>
                 )}
-                {['inscrit_ordre_du_jour', 'en_debat', 'recevable'].includes(bill.status) && (
-                  <button onClick={handleUrgence} className={`text-xs py-1.5 px-3 flex items-center gap-1.5 border rounded-lg transition-colors ${bill.procedure_urgence ? 'border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100' : 'border-gray-200 text-gray-600 hover:border-orange-200 hover:text-orange-600'}`}>
-                    <Zap size={13} />
-                    {bill.procedure_urgence ? 'Lever l\'urgence' : 'Procédure d\'urgence'}
+                {['recevable', 'inscrit_ordre_du_jour', 'en_debat'].includes(bill.status) && (
+                  <button onClick={handleUrgence} className={`text-xs py-1.5 px-3 flex items-center gap-1.5 border rounded-lg transition-colors ${bill.procedure_urgence ? 'border-orange-300 bg-orange-50 text-orange-700' : 'border-gray-200 text-gray-600 hover:border-orange-200 hover:text-orange-600'}`}>
+                    <Zap size={13} />{bill.procedure_urgence ? "Lever l'urgence" : "Procédure d'urgence"}
                   </button>
                 )}
               </div>
@@ -458,14 +440,12 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
           )}
         </div>
 
-        {/* Alertes motions en attente (pour président) */}
+        {/* Alertes motions en attente (président) */}
         {isPresSéance && pendingMotions.length > 0 && (
           <div className="card border-amber-200 bg-amber-50">
             <div className="flex items-center gap-2 mb-3">
               <AlertTriangle size={16} className="text-amber-600" />
-              <h3 className="font-semibold text-amber-800 text-sm">
-                {pendingMotions.length} motion(s) en attente de traitement
-              </h3>
+              <h3 className="font-semibold text-amber-800 text-sm">{pendingMotions.length} motion(s) en attente</h3>
             </div>
             <div className="space-y-2">
               {pendingMotions.map(m => (
@@ -478,12 +458,8 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => handleMotionStatut(m.id, 'acceptee')} className="p-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200">
-                      <CheckCircle size={14} />
-                    </button>
-                    <button onClick={() => handleMotionStatut(m.id, 'refusee')} className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200">
-                      <XCircle size={14} />
-                    </button>
+                    <button onClick={() => handleMotionStatut(m.id, 'acceptee')} className="p-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200"><CheckCircle size={14} /></button>
+                    <button onClick={() => handleMotionStatut(m.id, 'refusee')} className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200"><XCircle size={14} /></button>
                   </div>
                 </div>
               ))}
@@ -511,29 +487,22 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
 
         {/* Amendements */}
         <div className="card">
-          <button
-            onClick={() => setShowAmendements(!showAmendements)}
-            className="w-full flex items-center justify-between"
-          >
+          <button onClick={() => setShowAmendements(!showAmendements)} className="w-full flex items-center justify-between">
             <h2 className="section-title flex items-center gap-2">
-              <Gavel size={16} className="text-pel-blue" />
-              Amendements ({amendements.length})
+              <Gavel size={16} className="text-pel-blue" />Amendements ({amendements.length})
             </h2>
             {showAmendements ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
           </button>
 
           {showAmendements && (
             <div className="mt-4 space-y-3">
-              {/* Liste amendements */}
               {amendements.map(am => (
                 <div key={am.id} className={`p-3 rounded-lg border ${am.statut === 'adopte' ? 'border-green-200 bg-green-50' : am.statut === 'rejete' || am.statut === 'irrecevable' ? 'border-red-100 bg-red-50/40' : 'border-gray-100 bg-gray-50'}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="text-xs font-mono text-gray-400">{am.numero}</span>
-                        <span className={`badge text-xs ${AMENDEMENT_STATUT_COLORS[am.statut]}`}>
-                          {AMENDEMENT_STATUT_LABELS[am.statut]}
-                        </span>
+                        <span className={`badge text-xs ${AMENDEMENT_STATUT_COLORS[am.statut]}`}>{AMENDEMENT_STATUT_LABELS[am.statut]}</span>
                         {am.article_vise && <span className="text-xs text-gray-400">Art. {am.article_vise}</span>}
                       </div>
                       <p className="text-sm font-medium text-gray-800">{am.titre}</p>
@@ -544,22 +513,14 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
                     </div>
                     {isPresSéance && am.statut === 'depose' && (
                       <div className="flex flex-col gap-1 flex-shrink-0">
-                        <button onClick={() => handleAmendStatut(am.id, 'recevable')} className="p-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200" title="Recevable">
-                          <CheckCircle size={14} />
-                        </button>
-                        <button onClick={() => handleAmendStatut(am.id, 'irrecevable')} className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200" title="Irrecevable">
-                          <XCircle size={14} />
-                        </button>
+                        <button onClick={() => handleAmendStatut(am.id, 'recevable')} className="p-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200" title="Recevable"><CheckCircle size={14} /></button>
+                        <button onClick={() => handleAmendStatut(am.id, 'irrecevable')} className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200" title="Irrecevable"><XCircle size={14} /></button>
                       </div>
                     )}
                     {isPresSéance && am.statut === 'recevable' && (
                       <div className="flex flex-col gap-1 flex-shrink-0">
-                        <button onClick={() => handleAmendStatut(am.id, 'adopte')} className="p-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200" title="Adopté">
-                          <CheckCircle size={14} />
-                        </button>
-                        <button onClick={() => handleAmendStatut(am.id, 'rejete')} className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200" title="Rejeté">
-                          <XCircle size={14} />
-                        </button>
+                        <button onClick={() => handleAmendStatut(am.id, 'adopte')} className="p-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200" title="Adopté"><CheckCircle size={14} /></button>
+                        <button onClick={() => handleAmendStatut(am.id, 'rejete')} className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200" title="Rejeté"><XCircle size={14} /></button>
                       </div>
                     )}
                   </div>
@@ -570,35 +531,15 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
                 <p className="text-sm text-gray-400 py-2">Aucun amendement déposé.</p>
               )}
 
-              {/* Formulaire amendement */}
               {showAmendForm ? (
                 <div className="border border-pel-blue/20 rounded-lg p-4 bg-blue-50/30 space-y-3">
                   <h4 className="text-sm font-semibold text-gray-700">Déposer un amendement</h4>
-                  <input
-                    type="text"
-                    placeholder="Titre de l'amendement *"
-                    value={amendForm.titre}
-                    onChange={e => setAmendForm({ ...amendForm, titre: e.target.value })}
-                    className="input-field text-sm"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Article visé (ex : Art. 3) — optionnel"
-                    value={amendForm.article_vise}
-                    onChange={e => setAmendForm({ ...amendForm, article_vise: e.target.value })}
-                    className="input-field text-sm"
-                  />
-                  <textarea
-                    placeholder="Texte de l'amendement *"
-                    value={amendForm.texte}
-                    onChange={e => setAmendForm({ ...amendForm, texte: e.target.value })}
-                    className="input-field text-sm resize-none"
-                    rows={4}
-                  />
+                  <input type="text" placeholder="Titre *" value={amendForm.titre} onChange={e => setAmendForm({ ...amendForm, titre: e.target.value })} className="input-field text-sm" />
+                  <input type="text" placeholder="Article visé (optionnel)" value={amendForm.article_vise} onChange={e => setAmendForm({ ...amendForm, article_vise: e.target.value })} className="input-field text-sm" />
+                  <textarea placeholder="Texte *" value={amendForm.texte} onChange={e => setAmendForm({ ...amendForm, texte: e.target.value })} className="input-field text-sm resize-none" rows={4} />
                   <div className="flex gap-2">
                     <button onClick={handleSubmitAmendement} disabled={savingAmend} className="btn-primary text-sm flex items-center gap-1.5">
-                      <Send size={13} />
-                      {savingAmend ? 'Dépôt…' : 'Déposer'}
+                      <Send size={13} />{savingAmend ? 'Dépôt…' : 'Déposer'}
                     </button>
                     <button onClick={() => setShowAmendForm(false)} className="btn-secondary text-sm">Annuler</button>
                   </div>
@@ -606,8 +547,7 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
               ) : (
                 isEligible && ['en_debat', 'inscrit_ordre_du_jour', 'recevable'].includes(bill.status) && (
                   <button onClick={() => setShowAmendForm(true)} className="btn-secondary text-sm flex items-center gap-1.5">
-                    <Plus size={14} />
-                    Déposer un amendement
+                    <Plus size={14} />Déposer un amendement
                   </button>
                 )
               )}
@@ -618,58 +558,37 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
         {/* Liste des orateurs */}
         {['en_debat', 'inscrit_ordre_du_jour'].includes(bill.status) && (
           <div className="card">
-            <button
-              onClick={() => setShowOrateurs(!showOrateurs)}
-              className="w-full flex items-center justify-between"
-            >
+            <button onClick={() => setShowOrateurs(!showOrateurs)} className="w-full flex items-center justify-between">
               <h2 className="section-title flex items-center gap-2">
-                <Mic size={16} className="text-pel-blue" />
-                Liste des orateurs ({orateurs.filter(o => !o.a_parle).length} en attente)
+                <Mic size={16} className="text-pel-blue" />Liste des orateurs ({orateurs.filter(o => !o.a_parle).length} en attente)
               </h2>
               {showOrateurs ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
             </button>
-
             {showOrateurs && (
               <div className="mt-4 space-y-2">
-                {orateurs.length === 0 && (
-                  <p className="text-sm text-gray-400 py-1">Aucun orateur inscrit.</p>
-                )}
+                {orateurs.length === 0 && <p className="text-sm text-gray-400 py-1">Aucun orateur inscrit.</p>}
                 {orateurs.map((o, i) => (
                   <div key={o.id} className={`flex items-center justify-between p-3 rounded-lg border ${o.a_parle ? 'border-gray-100 bg-gray-50 opacity-60' : 'border-blue-100 bg-blue-50/40'}`}>
                     <div className="flex items-center gap-3">
                       <span className="w-6 h-6 rounded-full bg-pel-blue/10 text-pel-blue text-xs font-bold flex items-center justify-center">{i + 1}</span>
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">
-                          {o.profiles ? `${o.profiles.first_name} ${o.profiles.last_name}` : 'Inconnu'}
-                        </p>
-                        {o.duree_secondes && (
-                          <p className="text-xs text-gray-400 flex items-center gap-1">
-                            <Clock size={11} />
-                            {Math.floor(o.duree_secondes / 60)}:{String(o.duree_secondes % 60).padStart(2, '0')}
-                          </p>
-                        )}
-                      </div>
+                      <p className="text-sm font-medium text-gray-800">
+                        {o.profiles ? `${o.profiles.first_name} ${o.profiles.last_name}` : 'Inconnu'}
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
                       {o.a_parle && <span className="text-xs text-gray-400 flex items-center gap-1"><MicOff size={12} />A parlé</span>}
                       {isPresSéance && !o.a_parle && (
-                        <button onClick={() => handleOrateurAParle(o.id)} className="text-xs py-1 px-2.5 bg-green-100 text-green-700 rounded hover:bg-green-200">
-                          ✓ A parlé
-                        </button>
+                        <button onClick={() => handleOrateurAParle(o.id)} className="text-xs py-1 px-2.5 bg-green-100 text-green-700 rounded hover:bg-green-200">✓ A parlé</button>
                       )}
                       {o.orateur_id === profile?.id && !o.a_parle && (
-                        <button onClick={handleSeDesinscrireOrateur} className="text-xs py-1 px-2.5 border border-red-200 text-red-600 rounded hover:bg-red-50">
-                          Se désinscrire
-                        </button>
+                        <button onClick={handleSeDesinscrireOrateur} className="text-xs py-1 px-2.5 border border-red-200 text-red-600 rounded hover:bg-red-50">Se désinscrire</button>
                       )}
                     </div>
                   </div>
                 ))}
-
                 {canSInscrireOrateur && (
                   <button onClick={handleSInscrireOrateur} className="btn-secondary text-sm flex items-center gap-1.5">
-                    <Mic size={14} />
-                    S&apos;inscrire pour prendre la parole
+                    <Mic size={14} />S&apos;inscrire pour prendre la parole
                   </button>
                 )}
               </div>
@@ -680,17 +599,12 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
         {/* Motions de procédure */}
         {isEligible && bill.status === 'en_debat' && (
           <div className="card">
-            <button
-              onClick={() => setShowMotions(!showMotions)}
-              className="w-full flex items-center justify-between"
-            >
+            <button onClick={() => setShowMotions(!showMotions)} className="w-full flex items-center justify-between">
               <h2 className="section-title flex items-center gap-2">
-                <AlertTriangle size={16} className="text-amber-600" />
-                Motions de procédure ({motions.length})
+                <AlertTriangle size={16} className="text-amber-600" />Motions de procédure ({motions.length})
               </h2>
               {showMotions ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
             </button>
-
             {showMotions && (
               <div className="mt-4 space-y-3">
                 {motions.map(m => (
@@ -709,35 +623,20 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
                     </div>
                   </div>
                 ))}
-
                 {!showMotionForm ? (
                   <button onClick={() => setShowMotionForm(true)} className="btn-secondary text-sm flex items-center gap-1.5">
-                    <Plus size={14} />
-                    Soumettre une motion
+                    <Plus size={14} />Soumettre une motion
                   </button>
                 ) : (
                   <div className="border border-amber-200 rounded-lg p-4 bg-amber-50/40 space-y-3">
                     <h4 className="text-sm font-semibold text-gray-700">Soumettre une motion de procédure</h4>
-                    <select
-                      value={motionType}
-                      onChange={e => setMotionType(e.target.value as MotionType)}
-                      className="input-field text-sm"
-                    >
-                      {Object.entries(MOTION_LABELS).map(([k, v]) => (
-                        <option key={k} value={k}>{v}</option>
-                      ))}
+                    <select value={motionType} onChange={e => setMotionType(e.target.value as MotionType)} className="input-field text-sm">
+                      {Object.entries(MOTION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                     </select>
-                    <textarea
-                      placeholder="Motif (optionnel)"
-                      value={motionMotif}
-                      onChange={e => setMotionMotif(e.target.value)}
-                      className="input-field text-sm resize-none"
-                      rows={2}
-                    />
+                    <textarea placeholder="Motif (optionnel)" value={motionMotif} onChange={e => setMotionMotif(e.target.value)} className="input-field text-sm resize-none" rows={2} />
                     <div className="flex gap-2">
                       <button onClick={handleSubmitMotion} disabled={savingMotion} className="btn-primary text-sm flex items-center gap-1.5">
-                        <Send size={13} />
-                        {savingMotion ? 'Envoi…' : 'Soumettre'}
+                        <Send size={13} />{savingMotion ? 'Envoi…' : 'Soumettre'}
                       </button>
                       <button onClick={() => setShowMotionForm(false)} className="btn-secondary text-sm">Annuler</button>
                     </div>
@@ -751,8 +650,7 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
         {/* Co-signataires */}
         <div className="card">
           <h2 className="section-title mb-3 flex items-center gap-2">
-            <Users size={16} className="text-pel-blue" />
-            Co-signataires ({cosignataires.length})
+            <Users size={16} className="text-pel-blue" />Co-signataires ({cosignataires.length})
           </h2>
           {cosignataires.length > 0 ? (
             <div className="divide-y divide-gray-100">
@@ -766,9 +664,7 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
                       <p className="text-sm font-medium text-gray-900">
                         {cos.profiles ? `${cos.profiles.first_name} ${cos.profiles.last_name}` : 'Inconnu'}
                       </p>
-                      {cos.profiles && (
-                        <p className="text-xs text-gray-400 capitalize">{cos.profiles.role.replace(/_/g, ' ')}</p>
-                      )}
+                      {cos.profiles && <p className="text-xs text-gray-400 capitalize">{cos.profiles.role.replace(/_/g, ' ')}</p>}
                     </div>
                   </div>
                   <span className="text-xs text-gray-400">{formatDate(cos.signed_at)}</span>
