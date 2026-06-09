@@ -27,7 +27,7 @@ export default async function PresentationPage() {
           overflow: 'hidden',
           backdropFilter: 'blur(0px)',
         }}
-        className="py-20"
+        className="pt-28 pb-20"
       >
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <div className="animate-orb" style={{ position: 'absolute', width: 340, height: 340, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', filter: 'blur(60px)', top: '-80px', right: '10%' }} />

@@ -46,7 +46,7 @@ export default async function GroupesPage() {
           position: 'relative',
           overflow: 'hidden',
         }}
-        className="py-20"
+        className="pt-28 pb-20"
       >
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <div

@@ -64,7 +64,7 @@ export default function HomeContent({ settings, evenements, actualites, chiffres
         </div>
 
         {/* Contenu */}
-        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white py-24">
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white pt-32 pb-24">
 
           <div className="animate-fade-in inline-flex items-center gap-2.5 px-4 py-2 rounded-full mb-8"
             style={{

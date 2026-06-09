@@ -65,7 +65,7 @@ export default async function ResultatsPublicsPage() {
       <div style={{
         background: 'linear-gradient(135deg,#04439a 0%,#1a5fc8 100%)',
         color: 'white',
-        padding: '5rem 1.5rem 3rem',
+        padding: '7rem 1.5rem 3rem',
         textAlign: 'center',
       }}>
         <h1 style={{ fontFamily: 'var(--font-titre)', fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '0.75rem' }}>
