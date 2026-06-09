@@ -6,9 +6,10 @@ const adminClient = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-function formatIcalDate(dt: string | null | undefined, fallback?: string): string {
-  const date = new Date(dt ?? fallback ?? new Date().toISOString())
-  return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
+// La table evenements a les colonnes : id, titre, date, heure, lieu, type, description
+function formatIcalDate(date: string, heure?: string | null): string {
+  const base = heure ? `${date}T${heure}:00` : `${date}T09:00:00`
+  return new Date(base).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
 }
 
 function escapeIcal(str: string): string {
@@ -16,11 +17,12 @@ function escapeIcal(str: string): string {
 }
 
 export async function GET() {
+  const today = new Date().toISOString().slice(0, 10)
   const { data: evenements } = await adminClient
     .from('evenements')
-    .select('id,title,description,date_debut,date_fin,lieu')
-    .gte('date_debut', new Date().toISOString())
-    .order('date_debut', { ascending: true })
+    .select('id,titre,description,date,heure,lieu,type')
+    .gte('date', today)
+    .order('date', { ascending: true })
 
   const lines: string[] = [
     'BEGIN:VCALENDAR',
@@ -33,25 +35,27 @@ export async function GET() {
   ]
 
   for (const ev of (evenements ?? [])) {
-    const dtstart = formatIcalDate(ev.date_debut)
-    const dtend = formatIcalDate(ev.date_fin, ev.date_debut)
-    const uid = `${ev.id}@pel-lyon.fr`
+    const dtstart = formatIcalDate(ev.date, ev.heure)
+    // Durée par défaut : 2h
+    const endDate = new Date(ev.heure ? `${ev.date}T${ev.heure}:00` : `${ev.date}T09:00:00`)
+    endDate.setHours(endDate.getHours() + 2)
+    const dtend = endDate.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
+
     lines.push('BEGIN:VEVENT')
-    lines.push(`UID:${uid}`)
+    lines.push(`UID:${ev.id}@assemblee-pel.fr`)
     lines.push(`DTSTART:${dtstart}`)
     lines.push(`DTEND:${dtend}`)
-    lines.push(`SUMMARY:${escapeIcal(ev.title ?? '')}`)
+    lines.push(`SUMMARY:${escapeIcal(ev.titre ?? '')}`)
     if (ev.description) lines.push(`DESCRIPTION:${escapeIcal(ev.description)}`)
     if (ev.lieu) lines.push(`LOCATION:${escapeIcal(ev.lieu)}`)
-    lines.push(`DTSTAMP:${formatIcalDate(new Date().toISOString())}`)
+    if (ev.type) lines.push(`CATEGORIES:${escapeIcal(ev.type)}`)
+    lines.push(`DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')}`)
     lines.push('END:VEVENT')
   }
 
   lines.push('END:VCALENDAR')
 
-  const icsContent = lines.join('\r\n')
-
-  return new NextResponse(icsContent, {
+  return new NextResponse(lines.join('\r\n'), {
     headers: {
       'Content-Type': 'text/calendar; charset=utf-8',
       'Content-Disposition': 'attachment; filename="agenda-pel.ics"',
