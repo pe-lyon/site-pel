@@ -5,6 +5,7 @@ import { formatDate } from '@/lib/utils'
 import { useMobileMenu } from './DashboardShell'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import NotificationBell from '@/components/NotificationBell'
 
 interface TopBarProps {
   title: string
@@ -59,6 +60,7 @@ export default function TopBar({ title }: TopBarProps) {
 
       <div className="flex items-center gap-4">
         <span className="hidden sm:block text-sm text-gray-500">{today}</span>
+        <NotificationBell />
         {seanceOuverte && (
           <div className="flex items-center gap-1 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>

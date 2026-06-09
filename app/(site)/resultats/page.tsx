@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import SiteHero from '@/components/site/SiteHero'
+import DonutChart from '@/components/site/DonutChart'
 
 export const dynamic = 'force-dynamic'
 
@@ -110,6 +111,9 @@ export default async function ResultatsPublicsPage() {
                           Clos le {formatDate(session.closed_at ?? session.created_at)}
                         </p>
                       </div>
+
+                      {/* Donut chart */}
+                      <DonutChart pour={session.pour} contre={session.contre} abstention={session.abstention} />
 
                       {/* Barres résultats */}
                       <div style={{ minWidth: '220px' }}>

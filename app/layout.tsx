@@ -22,6 +22,9 @@ const barlowCondensed = Barlow_Condensed({
 export const metadata: Metadata = {
   title: 'Parlement des Étudiants de Lyon',
   description: 'Le Parlement des Étudiants de Lyon est une institution parlementaire étudiante indépendante.',
+  manifest: '/manifest.json',
+  themeColor: '#04439a',
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'PEL' },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -16,6 +16,15 @@ export default async function AgendaPage() {
       />
 
       <section className="py-12">
+        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 1.5rem 1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+          <a
+            href="/api/public/ical"
+            className="btn-outline"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}
+          >
+            📅 Synchroniser avec mon agenda
+          </a>
+        </div>
         {evenements.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-4xl mb-4">📅</p>

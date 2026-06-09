@@ -329,12 +329,28 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div>
+      <style>{`
+        @media print {
+          header, nav, aside, .no-print, [data-no-print] { display: none !important; }
+          body { background: white !important; }
+          .card { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
+        }
+      `}</style>
       <TopBar title="Proposition de loi" />
       <div className="p-6 max-w-4xl space-y-6">
-        <Link href="/propositions" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-pel-blue transition-colors">
-          <ArrowLeft size={16} />
-          Retour aux propositions
-        </Link>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <Link href="/propositions" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-pel-blue transition-colors no-print" data-no-print>
+            <ArrowLeft size={16} />
+            Retour aux propositions
+          </Link>
+          <button
+            onClick={() => window.print()}
+            className="btn-outline text-sm no-print"
+            data-no-print
+          >
+            🖨️ Imprimer / PDF
+          </button>
+        </div>
 
         {/* En-tête */}
         <div className="card">

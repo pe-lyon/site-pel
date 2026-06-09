@@ -32,7 +32,7 @@ export async function updateSession(request: NextRequest) {
     '/', '/presentation', '/bureau', '/groupes',
     '/actualites', '/agenda', '/ressources', '/contact',
     '/journal-officiel', '/loi', '/parlementaires', '/resultats',
-    '/seance', '/login', '/admin/login', '/auth/callback', '/mot-de-passe-oublie',
+    '/seance', '/seances', '/login', '/admin/login', '/auth/callback', '/mot-de-passe-oublie',
     '/api/auth', '/api/public',
   ]
   const isPublic = publicPrefixes.some(prefix =>

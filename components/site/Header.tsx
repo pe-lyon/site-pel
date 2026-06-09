@@ -13,6 +13,7 @@ const NAV = [
   { href: '/actualites', label: 'Actualités' },
   { href: '/agenda', label: 'Agenda' },
   { href: '/journal-officiel', label: 'Journal officiel' },
+  { href: '/seances', label: 'Séances' },
   { href: '/ressources', label: 'Ressources' },
 ]
 

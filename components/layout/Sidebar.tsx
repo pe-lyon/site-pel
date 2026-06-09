@@ -22,6 +22,7 @@ import {
   Flag,
   ClipboardList,
   Gavel,
+  Hand,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { UserRole } from '@/types'
@@ -44,6 +45,7 @@ const navItems: NavItem[] = [
   { href: '/mes-votes', label: 'Mes votes', icon: ClipboardList },
   { href: '/profil', label: 'Mon profil', icon: User },
   { href: '/groupe', label: 'Mon Groupe', icon: Flag },
+  { href: '/procuration', label: 'Procuration', icon: Hand },
 ]
 
 const adminItems: NavItem[] = [
@@ -213,12 +215,23 @@ export default function Sidebar({ role, firstName, lastName }: SidebarProps) {
               href="/president/recevabilite"
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150',
-                pathname.startsWith('/president') ? 'text-white' : 'text-blue-100 hover:text-white'
+                pathname === '/president/recevabilite' ? 'text-white' : 'text-blue-100 hover:text-white'
               )}
-              style={pathname.startsWith('/president') ? { background: 'rgba(255,255,255,0.18)', borderLeft: '3px solid white' } : undefined}
+              style={pathname === '/president/recevabilite' ? { background: 'rgba(255,255,255,0.18)', borderLeft: '3px solid white' } : undefined}
             >
               <Gavel size={18} />
               Bureau du Président
+            </Link>
+            <Link
+              href="/president/stats"
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150',
+                pathname === '/president/stats' ? 'text-white' : 'text-blue-100 hover:text-white'
+              )}
+              style={pathname === '/president/stats' ? { background: 'rgba(255,255,255,0.18)', borderLeft: '3px solid white' } : undefined}
+            >
+              <BarChart3 size={18} />
+              Statistiques
             </Link>
           </div>
         )}
