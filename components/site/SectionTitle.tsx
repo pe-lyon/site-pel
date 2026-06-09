@@ -16,7 +16,8 @@ export default function SectionTitle({ title, subtitle, centered = true, as: Tag
         fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)',
         fontWeight: 800,
         color: 'var(--pel-bleu)',
-        letterSpacing: '-0.01em',
+        letterSpacing: '0.04em',
+        textTransform: 'uppercase',
         lineHeight: 1.15,
         marginBottom: subtitle ? '0.75rem' : 0,
       }}>

@@ -77,8 +77,9 @@ export default function SiteHero({ badge, title, description, children }: SiteHe
             fontSize: 'clamp(2.2rem, 6vw, 4rem)',
             fontWeight: 800,
             color: 'white',
-            letterSpacing: '-0.01em',
+            letterSpacing: '0.04em',
             lineHeight: 1.1,
+            textTransform: 'uppercase',
             marginBottom: description ? '1.25rem' : 0,
           }}
         >

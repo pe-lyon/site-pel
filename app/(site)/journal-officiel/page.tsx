@@ -1,12 +1,13 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import Link from 'next/link'
+import { CheckCircle, Calendar, User, FileText, ChevronRight } from 'lucide-react'
+import { formatDate } from '@/lib/utils'
+import SiteHero from '@/components/site/SiteHero'
 
 const adminClient = createSupabaseClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
-import { BookOpen, CheckCircle, Calendar, User, FileText, ChevronRight } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,39 +37,12 @@ export default async function JournalOfficielPage() {
   const adoptedBills = (bills ?? []) as unknown as Bill[]
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--site-bg, #f8f9fc)' }}>
-      {/* Hero */}
-      <div style={{
-        background: 'linear-gradient(135deg, #04439a 0%, #0a2d6e 100%)',
-        padding: '5rem 1.5rem 4rem',
-        textAlign: 'center',
-        color: 'white',
-      }}>
-        <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            background: 'rgba(255,255,255,0.12)',
-            backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '999px',
-            padding: '0.4rem 1rem',
-            fontSize: '0.8rem',
-            fontFamily: 'var(--font-corps)',
-            marginBottom: '1.5rem',
-          }}>
-            <BookOpen size={14} />
-            Journal officiel
-          </div>
-          <h1 style={{ fontFamily: 'var(--font-titre)', fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, marginBottom: '1rem', lineHeight: 1.1 }}>
-            Textes adoptés
-          </h1>
-          <p style={{ fontFamily: 'var(--font-corps)', fontSize: '1.1rem', opacity: 0.85, lineHeight: 1.6 }}>
-            Ensemble des propositions et projets de loi adoptés par le Parlement des Étudiants de Lyon.
-          </p>
-        </div>
-      </div>
+    <div style={{ minHeight: '100vh' }}>
+      <SiteHero
+        badge="Journal officiel"
+        title="Textes adoptés"
+        description="Ensemble des propositions et projets de loi adoptés par le Parlement des Étudiants de Lyon."
+      />
 
       {/* Contenu */}
       <div style={{ maxWidth: '860px', margin: '0 auto', padding: '3rem 1.5rem' }}>
@@ -107,18 +81,11 @@ export default async function JournalOfficielPage() {
               >
                 {/* Numéro d'ordre */}
                 <div style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '10px',
+                  width: '40px', height: '40px', borderRadius: '10px',
                   background: '#04439a',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontFamily: 'var(--font-corps)',
-                  fontWeight: 700,
-                  fontSize: '0.875rem',
-                  flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'white', fontFamily: 'var(--font-corps)', fontWeight: 700,
+                  fontSize: '0.875rem', flexShrink: 0,
                 }}>
                   {adoptedBills.length - i}
                 </div>
@@ -130,40 +97,36 @@ export default async function JournalOfficielPage() {
                     </span>
                     {bill.type && (
                       <span style={{
-                        fontFamily: 'var(--font-corps)',
-                        fontSize: '0.72rem',
-                        fontWeight: 600,
-                        background: '#eef2ff',
-                        color: '#4338ca',
-                        borderRadius: '999px',
-                        padding: '0.15rem 0.6rem',
+                        fontFamily: 'var(--font-corps)', fontSize: '0.72rem', fontWeight: 600,
+                        background: '#eef2ff', color: '#4338ca',
+                        borderRadius: '999px', padding: '0.15rem 0.6rem',
                       }}>
                         {bill.type === 'projet_de_loi' ? 'Projet de loi' : 'Proposition de loi'}
                       </span>
                     )}
                     <span style={{
-                      fontFamily: 'var(--font-corps)',
-                      fontSize: '0.72rem',
-                      fontWeight: 600,
-                      background: '#dcfce7',
-                      color: '#16a34a',
-                      borderRadius: '999px',
-                      padding: '0.15rem 0.6rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.25rem',
+                      fontFamily: 'var(--font-corps)', fontSize: '0.72rem', fontWeight: 600,
+                      background: '#dcfce7', color: '#16a34a',
+                      borderRadius: '999px', padding: '0.15rem 0.6rem',
+                      display: 'flex', alignItems: 'center', gap: '0.25rem',
                     }}>
                       <CheckCircle size={10} />
                       Adopté
                     </span>
                   </div>
 
-                  <h3 style={{ fontFamily: 'var(--font-corps)', fontWeight: 700, fontSize: '1rem', color: '#111827', marginBottom: '0.4rem', lineHeight: 1.4 }}>
+                  <h3 style={{
+                    fontFamily: 'var(--font-corps)', fontWeight: 700, fontSize: '1rem',
+                    color: '#111827', marginBottom: '0.4rem', lineHeight: 1.4,
+                  }}>
                     {bill.title}
                   </h3>
 
                   {bill.description && (
-                    <p style={{ fontFamily: 'var(--font-corps)', fontSize: '0.875rem', color: '#6b7280', lineHeight: 1.5, marginBottom: '0.75rem' }}>
+                    <p style={{
+                      fontFamily: 'var(--font-corps)', fontSize: '0.875rem', color: '#6b7280',
+                      lineHeight: 1.5, marginBottom: '0.75rem',
+                    }}>
                       {bill.description}
                     </p>
                   )}
@@ -185,19 +148,12 @@ export default async function JournalOfficielPage() {
                 <Link
                   href={`/loi/${bill.id}`}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
+                    display: 'flex', alignItems: 'center', gap: '0.4rem',
                     padding: '0.5rem 1rem',
-                    border: '1.5px solid #e5e7eb',
-                    borderRadius: '0.625rem',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    fontFamily: 'var(--font-corps)',
-                    color: '#04439a',
-                    textDecoration: 'none',
-                    flexShrink: 0,
-                    transition: 'border-color 0.15s, background 0.15s',
+                    border: '1.5px solid #e5e7eb', borderRadius: '0.625rem',
+                    fontSize: '0.8rem', fontWeight: 600,
+                    fontFamily: 'var(--font-corps)', color: '#04439a',
+                    textDecoration: 'none', flexShrink: 0,
                   }}
                 >
                   Lire <ChevronRight size={14} />

@@ -50,7 +50,7 @@ export default async function BureauPage() {
               {sections.map(sec => (
                 <div key={sec}>
                   {sec !== '__sans_section__' && (
-                    <h2 style={{ fontFamily: 'var(--font-titre)', fontSize: '1.4rem', color: 'var(--pel-bleu)', fontWeight: 700, marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: '2px solid rgba(4,67,154,0.15)', textAlign: 'center' }}>
+                    <h2 style={{ fontFamily: 'var(--font-titre)', fontSize: '1.4rem', color: 'var(--pel-bleu)', fontWeight: 700, marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: '2px solid rgba(4,67,154,0.15)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                       {sec.toUpperCase()}
                     </h2>
                   )}

@@ -99,7 +99,7 @@ export default async function PresentationPage() {
       {/* Valeurs */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="mb-12 text-center" style={{ fontFamily: 'var(--font-titre)', fontSize: '2.5rem', color: 'var(--pel-bleu)', fontWeight: 700 }}>NOS VALEURS</h2>
+          <h2 className="mb-12 text-center" style={{ fontFamily: 'var(--font-titre)', fontSize: '2.5rem', color: 'var(--pel-bleu)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>NOS VALEURS</h2>
           <div className="grid md:grid-cols-3 gap-8">
             {defaultValeurs.map((v, i) => (
               <div

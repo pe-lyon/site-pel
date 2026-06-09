@@ -55,7 +55,7 @@ export default function ContactPage() {
                 padding: '2rem',
               }}
             >
-              <h2 className="mb-6" style={{ fontFamily: 'var(--font-titre)', fontSize: '2rem', color: 'var(--pel-bleu)', fontWeight: 700, textAlign: 'center' }}>ENVOYEZ-NOUS UN MESSAGE</h2>
+              <h2 className="mb-6" style={{ fontFamily: 'var(--font-titre)', fontSize: '2rem', color: 'var(--pel-bleu)', fontWeight: 700, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.04em' }}>ENVOYEZ-NOUS UN MESSAGE</h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -94,7 +94,7 @@ export default function ContactPage() {
                   padding: '2rem',
                 }}
               >
-                <h2 className="mb-6" style={{ fontFamily: 'var(--font-titre)', fontSize: '2rem', color: 'var(--pel-bleu)', fontWeight: 700, textAlign: 'center' }}>NOS COORDONNÉES</h2>
+                <h2 className="mb-6" style={{ fontFamily: 'var(--font-titre)', fontSize: '2rem', color: 'var(--pel-bleu)', fontWeight: 700, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.04em' }}>NOS COORDONNÉES</h2>
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--pel-bleu-light)' }}>
