@@ -23,29 +23,33 @@ export default function AdminLoginPage() {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/auth/login', {
+      // Étape 1 : vérification sécurité
+      const check = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifiant, password, turnstileToken, honeypot }),
+        body: JSON.stringify({ turnstileToken, honeypot }),
       })
-      const json = await res.json()
-
-      if (!res.ok) {
-        toast.error(json.error ?? 'Identifiants incorrects')
+      const checkJson = await check.json()
+      if (!check.ok) {
+        toast.error(checkJson.error ?? 'Vérification échouée')
         setLoading(false)
         return
       }
 
-      await supabase.auth.setSession({
-        access_token: json.access_token,
-        refresh_token: json.refresh_token,
-      })
+      // Étape 2 : auth Supabase côté client
+      const email = identifiant.includes('@') ? identifiant : `${identifiant.trim().toLowerCase()}@assemblee-pel.fr`
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error || !data.user) {
+        toast.error('Identifiants incorrects')
+        setLoading(false)
+        return
+      }
 
       // Vérifier le rôle admin
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
-        .eq('id', json.user.id)
+        .eq('id', data.user.id)
         .single()
 
       if (profile?.role !== 'president_seance') {

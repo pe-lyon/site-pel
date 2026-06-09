@@ -22,24 +22,27 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/auth/login', {
+      // Étape 1 : vérification sécurité (rate limit + Turnstile + honeypot)
+      const check = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifiant, password, turnstileToken, honeypot }),
+        body: JSON.stringify({ turnstileToken, honeypot }),
       })
-      const json = await res.json()
-
-      if (!res.ok) {
-        toast.error(json.error ?? 'Identifiants incorrects')
+      const checkJson = await check.json()
+      if (!check.ok) {
+        toast.error(checkJson.error ?? 'Vérification échouée')
         setLoading(false)
         return
       }
 
-      // Restaurer la session Supabase côté client à partir des tokens
-      await supabase.auth.setSession({
-        access_token: json.access_token,
-        refresh_token: json.refresh_token,
-      })
+      // Étape 2 : auth Supabase directement côté client (pour que les cookies SSR soient bien gérés)
+      const email = identifiant.includes('@') ? identifiant : `${identifiant.trim().toLowerCase()}@assemblee-pel.fr`
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        toast.error('Identifiants incorrects')
+        setLoading(false)
+        return
+      }
 
       const next = new URLSearchParams(window.location.search).get('next')
       window.location.href = next ?? '/dashboard'
