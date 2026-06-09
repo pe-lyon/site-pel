@@ -29,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr" className={`${poppins.variable} ${barlowCondensed.variable}`}>
       <head>
         <link rel="icon" href="/logo-pel.png" />
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('pel-theme');var c=localStorage.getItem('pel-colorblind');var d=localStorage.getItem('pel-dyslexic');if(t)document.documentElement.setAttribute('data-theme',t);if(c&&c!=='none')document.documentElement.setAttribute('data-colorblind',c);if(d==='true')document.documentElement.setAttribute('data-dyslexic','true');}catch(e){}})();` }} />
       </head>
       <body>
         <Toaster position="top-right" toastOptions={{ style: { fontFamily: 'var(--font-corps)' } }} />

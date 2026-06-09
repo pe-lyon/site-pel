@@ -119,48 +119,41 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50">
+      <header className="fixed top-0 left-0 right-0 z-50" style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
 
-        {/* ── État flottant (haut de page) ── */}
-        {!scrolled && (
-          <div className="flex justify-center pt-3 px-4">
-            <div style={{
-              borderRadius: '999px',
-              background: 'rgba(255,255,255,0.85)',
-              backdropFilter: 'blur(24px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-              border: '1px solid rgba(255,255,255,0.75)',
-              boxShadow: '0 8px 32px rgba(4,67,154,0.14), 0 2px 8px rgba(0,0,0,0.05)',
-            }}>
-              {navContent}
-            </div>
-          </div>
-        )}
-
-        {/* ── État scrollé (barre pleine largeur) ── */}
-        {scrolled && (
-          <div style={{
-            background: 'rgba(255,255,255,0.94)',
+        {/* ── Pill unique — toujours arrondie, centrée ── */}
+        <div
+          style={{
+            borderRadius: '999px',
+            background: scrolled ? 'rgba(255,255,255,0.94)' : 'rgba(255,255,255,0.85)',
             backdropFilter: 'blur(24px) saturate(180%)',
             WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-            borderBottom: '1px solid rgba(4,67,154,0.10)',
-            boxShadow: '0 2px 24px rgba(4,67,154,0.08)',
-          }}>
-            <div className="max-w-5xl mx-auto px-4 sm:px-6">
-              {navContent}
-            </div>
-          </div>
-        )}
+            border: '1px solid rgba(255,255,255,0.75)',
+            boxShadow: scrolled
+              ? '0 4px 32px rgba(4,67,154,0.18), 0 2px 12px rgba(0,0,0,0.08)'
+              : '0 8px 32px rgba(4,67,154,0.14), 0 2px 8px rgba(0,0,0,0.05)',
+            marginTop: scrolled ? '6px' : '12px',
+            transition: 'margin-top 0.3s ease, box-shadow 0.3s ease, background 0.3s ease',
+            width: 'auto',
+          }}
+        >
+          {navContent}
+        </div>
 
         {/* Menu mobile */}
         {mobileOpen && (
-          <div className="mx-4 mt-1 rounded-2xl overflow-hidden"
+          <div
             style={{
+              marginTop: '6px',
+              borderRadius: '1.25rem',
+              overflow: 'hidden',
               background: 'rgba(255,255,255,0.97)',
               backdropFilter: 'blur(24px)',
               WebkitBackdropFilter: 'blur(24px)',
               boxShadow: '0 16px 48px rgba(4,67,154,0.12)',
               border: '1px solid rgba(255,255,255,0.7)',
+              width: 'calc(100vw - 2rem)',
+              maxWidth: '400px',
             }}
           >
             <div className="px-4 py-3 space-y-1">
@@ -188,7 +181,6 @@ export default function Header() {
           </div>
         )}
       </header>
-
     </>
   )
 }

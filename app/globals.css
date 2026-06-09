@@ -540,3 +540,58 @@
     animation: shimmer 2s linear infinite;
   }
 }
+
+/* ===== DARK MODE ===== */
+[data-theme="dark"] {
+  --pel-bleu: #5b9bd5;
+  --pel-rouge: #e05a4a;
+  --pel-noir: #f1f5f9;
+}
+[data-theme="dark"] body {
+  background: #0f172a;
+  color: #f1f5f9;
+}
+[data-theme="dark"] .site-bg-layer {
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 5%, rgba(91,155,213,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 95%, rgba(224,90,74,0.10) 0%, transparent 60%),
+    #0f172a;
+}
+[data-theme="dark"] header > div,
+[data-theme="dark"] .card,
+[data-theme="dark"] footer {
+  background: rgba(30,41,59,0.85) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: #f1f5f9;
+}
+[data-theme="dark"] .text-gray-500,
+[data-theme="dark"] .text-gray-600,
+[data-theme="dark"] .text-gray-700 { color: #94a3b8 !important; }
+[data-theme="dark"] .text-gray-900 { color: #f1f5f9 !important; }
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .bg-gray-50 { background: #1e293b !important; }
+[data-theme="dark"] .border-gray-100,
+[data-theme="dark"] .border-gray-200 { border-color: rgba(255,255,255,0.08) !important; }
+
+/* ===== COLORBLIND MODES ===== */
+[data-colorblind="deuteranopia"] body { filter: url(#cb-deuteranopia); }
+[data-colorblind="protanopia"] body { filter: url(#cb-protanopia); }
+[data-colorblind="tritanopia"] body { filter: url(#cb-tritanopia); }
+
+/* ===== DYSLEXIC MODE ===== */
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.woff') format('woff');
+  font-weight: normal;
+}
+[data-dyslexic="true"] body,
+[data-dyslexic="true"] p,
+[data-dyslexic="true"] li,
+[data-dyslexic="true"] span,
+[data-dyslexic="true"] a,
+[data-dyslexic="true"] button {
+  font-family: 'OpenDyslexic', sans-serif !important;
+  letter-spacing: 0.05em;
+  word-spacing: 0.15em;
+  line-height: 1.8;
+}
