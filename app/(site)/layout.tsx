@@ -14,7 +14,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       <Header />
-      <main className="relative z-10">
+      <main className="relative z-10" style={{ background: 'transparent' }}>
         {children}
       </main>
       <div className="relative z-10">

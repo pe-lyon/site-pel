@@ -35,6 +35,7 @@ export default async function BureauPage() {
           background: 'var(--pel-bleu)',
           position: 'relative',
           overflow: 'hidden',
+          marginTop: '-1px',
         }}
         className="pt-28 pb-20"
       >
