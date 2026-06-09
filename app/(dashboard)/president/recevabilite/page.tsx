@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { formatDate, formatDateTime } from '@/lib/utils'
 import {
   Gavel, CheckCircle, XCircle, Eye, Clock, FileText, AlertTriangle,
-  BookOpen, MessageSquare, Zap, ChevronRight, Mic, Users,
+  BookOpen, MessageSquare, Zap, ChevronRight, Mic, Users, ExternalLink,
 } from 'lucide-react'
 import Link from 'next/link'
 import { STATUS_LABELS, STATUS_COLORS, TYPE_LABELS, BillStatus, MOTION_LABELS, MotionType } from '@/types'
@@ -208,6 +208,19 @@ export default function PresidentRecevabilitePage() {
     <div>
       <TopBar title="Bureau du Président de séance" />
       <div className="p-6 max-w-5xl space-y-8">
+
+        {/* Liens rapides */}
+        <div className="flex flex-wrap gap-2">
+          <Link href="/propositions" className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-pel-blue hover:text-pel-blue transition-colors bg-white">
+            <FileText size={13} />Toutes les propositions
+          </Link>
+          <Link href="/administration/propositions" className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-pel-blue hover:text-pel-blue transition-colors bg-white">
+            <BookOpen size={13} />Administration des propositions
+          </Link>
+          <a href="/journal-officiel" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-green-500 hover:text-green-600 transition-colors bg-white">
+            <ExternalLink size={13} />Journal officiel
+          </a>
+        </div>
 
         {/* Compteurs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

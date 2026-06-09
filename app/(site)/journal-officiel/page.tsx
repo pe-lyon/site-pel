@@ -183,7 +183,7 @@ export default async function JournalOfficielPage() {
                 </div>
 
                 <Link
-                  href={`/propositions/${bill.id}`}
+                  href={`/loi/${bill.id}`}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
