@@ -28,7 +28,7 @@ export default function AdminScrutinsPage() {
     setUserId(user?.id ?? null)
     const [{ data: s }, { data: b }] = await Promise.all([
       supabase.from('vote_sessions').select('*, bills(number, title)').order('created_at', { ascending: false }),
-      supabase.from('bills').select('*').in('status', ['deposee', 'en_discussion', 'soumise_au_vote']).order('number'),
+      supabase.from('bills').select('*').in('status', ['deposee', 'recevable', 'inscrit_ordre_du_jour', 'en_debat', 'soumis_au_vote']).order('number'),
     ])
     setSessions(s ?? [])
     setBills(b ?? [])
@@ -72,7 +72,7 @@ export default function AdminScrutinsPage() {
     } else {
       // Mettre à jour le statut de la proposition
       if (billId) {
-        await supabase.from('bills').update({ status: 'soumise_au_vote' }).eq('id', billId)
+        await supabase.from('bills').update({ status: 'soumis_au_vote' }).eq('id', billId)
       }
       await logAction(supabase, user!.id, 'ouverture_scrutin', 'vote_session', data.id, { title })
       toast.success('Scrutin ouvert !')

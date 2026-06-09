@@ -57,6 +57,7 @@ export interface Bill {
   recevabilite_le?: string | null
   procedure_urgence?: boolean
   urgence_demandee_par?: string | null
+  urgence_le?: string | null
   inscrit_odj_le?: string | null
   debat_ouvert_le?: string | null
   debat_clos_le?: string | null

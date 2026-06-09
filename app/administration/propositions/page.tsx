@@ -159,7 +159,7 @@ export default function AdminPropositionsPage() {
     fetchBills()
   }
 
-  const pendingRecevabilite = bills.filter(b => b.status === 'deposee' || (b.recevabilite === 'en_attente' && b.status === 'deposee'))
+  const pendingRecevabilite = bills.filter(b => b.status === 'deposee')
   const allBills = bills
 
   return (

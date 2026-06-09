@@ -140,7 +140,7 @@ export default function AdminAgendaPage() {
                   <option value="Événement" />
                   <option value="Commission" />
                   <option value="Atelier" />
-                  {[...new Set(events.map((e: any) => e.type).filter(Boolean))].map((t: any) => (
+                  {Array.from(new Set(events.map((e: any) => e.type).filter(Boolean))).map((t: any) => (
                     <option key={t} value={t} />
                   ))}
                 </datalist>

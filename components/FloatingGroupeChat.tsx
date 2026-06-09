@@ -204,7 +204,6 @@ export default function FloatingGroupeChat() {
           boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
           zIndex: 100,
           transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)',
-          position: 'fixed',
         } as React.CSSProperties}
         onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.12)')}
         onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}

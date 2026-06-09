@@ -8,10 +8,15 @@ const adminClient = createClient(
 )
 
 export async function POST(request: Request) {
-  // Vérifier uniquement que l'utilisateur est authentifié
+  // Vérifier que l'utilisateur est authentifié ET a le rôle président de séance
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'president_seance') {
+    return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+  }
 
   const { table, select, order, filters } = await request.json()
 

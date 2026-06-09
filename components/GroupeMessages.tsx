@@ -76,7 +76,7 @@ export default function GroupeMessages({ groupeId: initialGroupeId, currentUserI
         }
         throw error
       }
-      setMessages((data ?? []).reverse() as Message[])
+      setMessages((data ?? []).reverse() as unknown as Message[])
     } catch {
       setUnavailable(true)
     }

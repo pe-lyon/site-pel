@@ -48,7 +48,7 @@ export default function MesVotesPage() {
           .eq('voter_id', user.id)
           .order('created_at', { ascending: false })
 
-        setVotes((data ?? []) as MonVote[])
+        setVotes((data ?? []) as unknown as MonVote[])
       } finally {
         setLoading(false)
       }

@@ -7,22 +7,22 @@ const adminClient = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// Tables autorisées en lecture publique (pas de données sensibles)
+// Tables autorisées en lecture publique (strictement non-sensibles)
 const PUBLIC_TABLES = [
-  'political_groups',
-  'profiles',
-  'bills',
-  'vote_sessions',
-  'votes',
-  'seances',
-  'ordre_du_jour',
-  'bureau_membres',
-  'actualites',
+  'political_groups',   // groupes politiques — info publique
+  'bills',              // propositions de loi — publiques après adoption
+  'vote_sessions',      // sessions de vote — résultats publics
+  'votes',              // votes — publics pour scrutins publics
+  'seances',            // séances — publiques
+  'bureau_membres',     // membres du bureau — info publique
+  'actualites',         // articles — publiés
   'actualites_categories',
-  'evenements',
-  'ressources',
+  'evenements',         // événements — agenda public
+  'ressources',         // documents — publics
   'presentation_timeline',
   'chiffres_cles',
+  // NOTE: 'profiles' retiré — données personnelles (email, rôle, etc.)
+  // Utiliser un select explicite de colonnes publiques si nécessaire
 ]
 
 export async function POST(request: Request) {

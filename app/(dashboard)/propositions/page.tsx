@@ -63,7 +63,7 @@ export default function PropositionsPage() {
         .from('bills')
         .select('id, number, title, description, status, type, created_at, profiles(first_name, last_name)')
         .order('created_at', { ascending: false })
-      setBills((billsData as Bill[]) ?? [])
+      setBills((billsData as unknown as Bill[]) ?? [])
     }
     load()
   }, [])
@@ -106,7 +106,7 @@ export default function PropositionsPage() {
         .from('bills')
         .select('id, number, title, description, status, type, created_at, profiles(first_name, last_name)')
         .order('created_at', { ascending: false })
-      setBills((billsData as Bill[]) ?? [])
+      setBills((billsData as unknown as Bill[]) ?? [])
     } catch (err: unknown) {
       toast.error((err as Error).message ?? 'Erreur lors du dépôt')
     } finally {

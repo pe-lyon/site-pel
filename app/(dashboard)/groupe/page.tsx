@@ -471,9 +471,10 @@ export default function GroupePage() {
           {profile?.group_id && currentUserId && (
             <GroupeMessages
               groupeId={profile.group_id}
-              isPresident={true}
               currentUserId={currentUserId}
               groupColor={myGroup?.color ?? '#04439a'}
+              canSend={true}
+              isSpeaker={false}
             />
           )}
         </div>
@@ -552,9 +553,10 @@ export default function GroupePage() {
           {profile?.group_id && currentUserId && (
             <GroupeMessages
               groupeId={profile.group_id}
-              isPresident={false}
               currentUserId={currentUserId}
               groupColor={myGroupFull.color}
+              canSend={true}
+              isSpeaker={false}
             />
           )}
         </div>

@@ -80,8 +80,8 @@ export default function AdminBureauPage() {
   })
 
   // Suggestions datalist
-  const usedSections = [...new Set(membres.map(m => parseRole(m.role ?? '').section).filter(Boolean))]
-  const usedFonctions = [...new Set(membres.map(m => parseRole(m.role ?? '').fonction).filter(Boolean))]
+  const usedSections = Array.from(new Set(membres.map(m => parseRole(m.role ?? '').section).filter(Boolean)))
+  const usedFonctions = Array.from(new Set(membres.map(m => parseRole(m.role ?? '').fonction).filter(Boolean)))
 
   return (
     <div>
