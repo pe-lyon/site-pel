@@ -62,12 +62,12 @@ export default function AccessibilityMenu() {
       id="accessibility-menu"
       style={{
         position: 'fixed',
-        bottom: '1.5rem',
-        left: '1.5rem',
+        bottom: '5.5rem',
+        right: '1.5rem',
         zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'flex-start',
+        alignItems: 'flex-end',
         gap: '8px',
       }}
     >
