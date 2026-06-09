@@ -121,14 +121,16 @@ export default function HemicycleView() {
       adminRead('profiles', '*, political_groups!profiles_group_id_fkey(*)', { col: 'last_name' }),
       adminRead('political_groups', '*', { col: 'name' }),
     ])
-    setProfiles(profilesData)
+
+    // Seuls les parlementaires, présidents de groupe et ministres apparaissent dans les sièges
+    const SIEGE_ROLES = ['parlementaire', 'president_groupe', 'ministre']
+    setProfiles((profilesData as Profile[]).filter(p => SIEGE_ROLES.includes(p.role)))
     setGroups(groupsData)
 
-    // Chercher le président de séance
-    const presidents = await adminRead('profiles', 'first_name, last_name', undefined, { role: 'president_seance' })
-    if (presidents?.length > 0) {
-      const p = presidents[0]
-      setPresidentName(`${p.first_name} ${p.last_name}`)
+    // Président(s) de séance → affichés à la présidence
+    const presSeance = (profilesData as Profile[]).filter(p => p.role === 'president_seance')
+    if (presSeance.length > 0) {
+      setPresidentName(presSeance.map(p => `${p.first_name} ${p.last_name}`).join(' · '))
     }
 
     setLoading(false)
@@ -295,7 +297,7 @@ export default function HemicycleView() {
             )}
           </div>
           <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between text-sm">
-            <span className="text-gray-500">Total</span>
+            <span className="text-gray-500">Députés</span>
             <span className="font-bold text-pel-blue">{profiles.length}</span>
           </div>
         </div>

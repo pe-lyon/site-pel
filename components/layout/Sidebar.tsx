@@ -21,6 +21,7 @@ import {
   PenLine,
   Flag,
   ClipboardList,
+  Gavel,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { UserRole } from '@/types'
@@ -200,6 +201,24 @@ export default function Sidebar({ role, firstName, lastName }: SidebarProps) {
             >
               <PenLine size={18} />
               Soumettre une contribution
+            </Link>
+          </div>
+        )}
+
+        {/* Bureau du Président de séance */}
+        {isPresident && (
+          <div className="pt-2">
+            <p className="px-3 py-1.5 text-xs font-semibold text-blue-300 uppercase tracking-wider">Présidence</p>
+            <Link
+              href="/president/recevabilite"
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150',
+                pathname.startsWith('/president') ? 'text-white' : 'text-blue-100 hover:text-white'
+              )}
+              style={pathname.startsWith('/president') ? { background: 'rgba(255,255,255,0.18)', borderLeft: '3px solid white' } : undefined}
+            >
+              <Gavel size={18} />
+              Bureau du Président
             </Link>
           </div>
         )}
