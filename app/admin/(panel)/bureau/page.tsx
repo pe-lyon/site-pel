@@ -4,7 +4,10 @@ import { Plus, Pencil, Trash2, X, Save } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getInitials } from '@/lib/utils'
 
-const EMPTY = { prenom: '', nom: '', section: '', fonction: '', email: '', linkedin_url: '', ordre: '0' }
+const EMPTY = {
+  prenom: '', nom: '', section: '', fonction: '', email: '', linkedin_url: '', ordre: '0',
+  bio: '', formation: '', universite: '', promotion: '', photo_url: '',
+}
 
 function parseRole(role: string) {
   const parts = role.split(' > ')
@@ -40,7 +43,12 @@ export default function AdminBureauPage() {
   function openNew() { setForm(EMPTY); setEditing(null); setOpen(true) }
   function openEdit(m: any) {
     const { section, fonction } = parseRole(m.role ?? '')
-    setForm({ prenom: m.prenom, nom: m.nom, section, fonction, email: m.email ?? '', linkedin_url: m.linkedin_url ?? '', ordre: String(m.ordre ?? 0) })
+    setForm({
+      prenom: m.prenom, nom: m.nom, section, fonction,
+      email: m.email ?? '', linkedin_url: m.linkedin_url ?? '', ordre: String(m.ordre ?? 0),
+      bio: m.bio ?? '', formation: m.formation ?? '', universite: m.universite ?? '',
+      promotion: m.promotion ?? '', photo_url: m.photo_url ?? '',
+    })
     setEditing(m.id); setOpen(true)
   }
   const F = (k: keyof typeof EMPTY, v: string) => setForm(p => ({ ...p, [k]: v }))
@@ -48,7 +56,14 @@ export default function AdminBureauPage() {
   async function save() {
     if (!form.prenom || !form.nom || !form.fonction) return toast.error('Prénom, nom et fonction requis')
     const role = form.section ? `${form.section} > ${form.fonction}` : form.fonction
-    const data = { prenom: form.prenom, nom: form.nom, role, email: form.email || null, linkedin_url: form.linkedin_url || null, ordre: parseInt(form.ordre) || 0, actif: true }
+    const data = {
+      prenom: form.prenom, nom: form.nom, role,
+      email: form.email || null, linkedin_url: form.linkedin_url || null,
+      ordre: parseInt(form.ordre) || 0, actif: true,
+      bio: form.bio || null, formation: form.formation || null,
+      universite: form.universite || null, promotion: form.promotion || null,
+      photo_url: form.photo_url || null,
+    }
     if (editing) {
       await apiWrite('bureau_membres', 'update', data, { id: editing })
       toast.success('Membre modifié')
@@ -65,7 +80,6 @@ export default function AdminBureauPage() {
     toast.success('Supprimé'); load()
   }
 
-  // Grouper par section
   const grouped: Record<string, any[]> = {}
   for (const m of membres) {
     const { section } = parseRole(m.role ?? '')
@@ -79,7 +93,6 @@ export default function AdminBureauPage() {
     return a.localeCompare(b)
   })
 
-  // Suggestions datalist
   const usedSections = Array.from(new Set(membres.map(m => parseRole(m.role ?? '').section).filter(Boolean)))
   const usedFonctions = Array.from(new Set(membres.map(m => parseRole(m.role ?? '').fonction).filter(Boolean)))
 
@@ -108,17 +121,28 @@ export default function AdminBureauPage() {
                   return (
                     <div key={m.id} className="bg-white rounded-2xl p-5 border border-gray-100 hover:shadow-md transition-shadow">
                       <div className="flex items-start justify-between mb-4">
-                        <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold" style={{ background: 'var(--pel-bleu)', fontFamily: 'var(--font-corps)' }}>
-                          {getInitials(m.prenom, m.nom)}
+                        <div className="flex items-center gap-3">
+                          {m.photo_url ? (
+                            <img src={m.photo_url} alt={`${m.prenom} ${m.nom}`} className="w-12 h-12 rounded-full object-cover border-2 border-gray-100" />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold" style={{ background: 'var(--pel-bleu)', fontFamily: 'var(--font-corps)' }}>
+                              {getInitials(m.prenom, m.nom)}
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-bold text-gray-900 text-sm" style={{ fontFamily: 'var(--font-corps)' }}>{m.prenom} {m.nom}</p>
+                            <p className="text-xs mt-0.5" style={{ color: 'var(--pel-bleu)', fontFamily: 'var(--font-corps)' }}>{fonction}</p>
+                          </div>
                         </div>
                         <div className="flex gap-1">
                           <button onClick={() => openEdit(m)} className="p-1.5 text-gray-400 hover:text-[#04439a] rounded transition-colors"><Pencil size={14} /></button>
                           <button onClick={() => del(m.id)} className="p-1.5 text-gray-400 hover:text-[#b21d0b] rounded transition-colors"><Trash2 size={14} /></button>
                         </div>
                       </div>
-                      <p className="font-bold text-gray-900" style={{ fontFamily: 'var(--font-corps)' }}>{m.prenom} {m.nom}</p>
-                      <p className="text-sm mt-0.5" style={{ color: 'var(--pel-bleu)', fontFamily: 'var(--font-corps)' }}>{fonction}</p>
-                      {m.email && <p className="text-xs text-gray-400 mt-1" style={{ fontFamily: 'var(--font-corps)' }}>{m.email}</p>}
+                      {m.formation && <p className="text-xs text-gray-500 mb-0.5" style={{ fontFamily: 'var(--font-corps)' }}>🎓 {m.formation}{m.universite ? ` · ${m.universite}` : ''}</p>}
+                      {m.promotion && <p className="text-xs text-gray-400" style={{ fontFamily: 'var(--font-corps)' }}>📅 {m.promotion}</p>}
+                      {m.bio && <p className="text-xs text-gray-400 mt-2 line-clamp-2" style={{ fontFamily: 'var(--font-corps)' }}>{m.bio}</p>}
+                      {m.email && <p className="text-xs text-gray-400 mt-1" style={{ fontFamily: 'var(--font-corps)' }}>✉ {m.email}</p>}
                     </div>
                   )
                 })}
@@ -130,79 +154,128 @@ export default function AdminBureauPage() {
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="flex justify-between items-center p-6 pb-0">
               <h2 style={{ fontFamily: 'var(--font-titre)', fontSize: '1.5rem', color: 'var(--pel-bleu)', fontWeight: 700 }}>
                 {editing ? 'MODIFIER' : 'NOUVEAU MEMBRE'}
               </h2>
               <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
             </div>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="label">Prénom *</label>
-                  <input className="input-field" value={form.prenom} onChange={e => F('prenom', e.target.value)} placeholder="Marie" />
+
+            <div className="p-6 space-y-5">
+              {/* Identité */}
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Identité</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Prénom *</label>
+                    <input className="input-field" value={form.prenom} onChange={e => F('prenom', e.target.value)} placeholder="Marie" />
+                  </div>
+                  <div>
+                    <label className="label">Nom *</label>
+                    <input className="input-field" value={form.nom} onChange={e => F('nom', e.target.value)} placeholder="Dupont" />
+                  </div>
                 </div>
-                <div>
-                  <label className="label">Nom *</label>
-                  <input className="input-field" value={form.nom} onChange={e => F('nom', e.target.value)} placeholder="Dupont" />
+              </div>
+
+              {/* Photo */}
+              <div>
+                <label className="label">Photo (URL)</label>
+                <input className="input-field" value={form.photo_url} onChange={e => F('photo_url', e.target.value)} placeholder="https://..." />
+                <p className="text-xs text-gray-400 mt-1">Lien direct vers une image (JPG, PNG). Laisse vide pour afficher les initiales.</p>
+                {form.photo_url && (
+                  <img src={form.photo_url} alt="Aperçu" className="w-16 h-16 rounded-full object-cover mt-2 border-2 border-gray-200" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                )}
+              </div>
+
+              {/* Rôle */}
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Rôle au bureau</p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="label">Section</label>
+                    <input className="input-field" list="sections-list" value={form.section} onChange={e => F('section', e.target.value)} placeholder="Bureau Exécutif, Pôle Communication..." />
+                    <datalist id="sections-list">
+                      <option value="Bureau Exécutif" /><option value="Bureau Restreint" />
+                      <option value="Pôle Communication" /><option value="Pôle Logistique" />
+                      <option value="Pôle Juridique" /><option value="Pôle Académique" />
+                      {usedSections.map(s => <option key={s} value={s} />)}
+                    </datalist>
+                    <p className="text-xs text-gray-400 mt-1">Laisse vide si pas de section</p>
+                  </div>
+                  <div>
+                    <label className="label">Fonction *</label>
+                    <input className="input-field" list="fonctions-list" value={form.fonction} onChange={e => F('fonction', e.target.value)} placeholder="Président(e), Responsable..." />
+                    <datalist id="fonctions-list">
+                      <option value="Président(e)" /><option value="Vice-Président(e)" />
+                      <option value="Secrétaire Général(e)" /><option value="Trésorier(ère)" />
+                      <option value="Responsable" /><option value="Chargé(e) de mission" /><option value="Membre" />
+                      {usedFonctions.map(f => <option key={f} value={f} />)}
+                    </datalist>
+                  </div>
                 </div>
               </div>
+
+              {/* Formation */}
               <div>
-                <label className="label">Section</label>
-                <input
-                  className="input-field"
-                  list="sections-list"
-                  value={form.section}
-                  onChange={e => F('section', e.target.value)}
-                  placeholder="Bureau Exécutif, Pôle Communication..."
-                />
-                <datalist id="sections-list">
-                  <option value="Bureau Exécutif" />
-                  <option value="Bureau Restreint" />
-                  <option value="Pôle Communication" />
-                  <option value="Pôle Logistique" />
-                  <option value="Pôle Juridique" />
-                  <option value="Pôle Académique" />
-                  {usedSections.map(s => <option key={s} value={s} />)}
-                </datalist>
-                <p className="text-xs text-gray-400 mt-1">Laisse vide si pas de section</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Formation & Parcours</p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="label">Formation / Diplôme</label>
+                    <input className="input-field" value={form.formation} onChange={e => F('formation', e.target.value)} placeholder="Master Droit public, Licence Sciences Po..." />
+                  </div>
+                  <div>
+                    <label className="label">Université / École</label>
+                    <input className="input-field" value={form.universite} onChange={e => F('universite', e.target.value)} placeholder="Université Lyon 3, Sciences Po Lyon..." />
+                  </div>
+                  <div>
+                    <label className="label">Promotion / Année</label>
+                    <input className="input-field" value={form.promotion} onChange={e => F('promotion', e.target.value)} placeholder="Promo 2025, M2 2024-2025..." />
+                  </div>
+                </div>
               </div>
+
+              {/* Bio */}
               <div>
-                <label className="label">Fonction *</label>
-                <input
-                  className="input-field"
-                  list="fonctions-list"
-                  value={form.fonction}
-                  onChange={e => F('fonction', e.target.value)}
-                  placeholder="Président(e), Responsable..."
-                />
-                <datalist id="fonctions-list">
-                  <option value="Président(e)" />
-                  <option value="Vice-Président(e)" />
-                  <option value="Secrétaire Général(e)" />
-                  <option value="Trésorier(ère)" />
-                  <option value="Responsable" />
-                  <option value="Chargé(e) de mission" />
-                  <option value="Membre" />
-                  {usedFonctions.map(f => <option key={f} value={f} />)}
-                </datalist>
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Biographie</p>
+                <div>
+                  <label className="label">Présentation courte</label>
+                  <textarea
+                    className="input-field"
+                    value={form.bio}
+                    onChange={e => F('bio', e.target.value)}
+                    placeholder="Quelques mots sur son engagement, ses motivations, son parcours..."
+                    rows={3}
+                    style={{ resize: 'vertical' }}
+                  />
+                  <p className="text-xs text-gray-400 mt-1">{form.bio.length}/300 caractères recommandés</p>
+                </div>
               </div>
+
+              {/* Contact */}
               <div>
-                <label className="label">Email</label>
-                <input type="email" className="input-field" value={form.email} onChange={e => F('email', e.target.value)} placeholder="marie@pel.fr" />
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Contact</p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="label">Email</label>
+                    <input type="email" className="input-field" value={form.email} onChange={e => F('email', e.target.value)} placeholder="marie@pel.fr" />
+                  </div>
+                  <div>
+                    <label className="label">LinkedIn (URL)</label>
+                    <input className="input-field" value={form.linkedin_url} onChange={e => F('linkedin_url', e.target.value)} placeholder="https://linkedin.com/in/..." />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="label">LinkedIn (URL)</label>
-                <input className="input-field" value={form.linkedin_url} onChange={e => F('linkedin_url', e.target.value)} placeholder="https://linkedin.com/in/..." />
-              </div>
+
+              {/* Ordre */}
               <div>
                 <label className="label">Ordre d&apos;affichage</label>
-                <input type="number" className="input-field" value={form.ordre} onChange={e => F('ordre', e.target.value)} min="0" />
-                <p className="text-xs text-gray-400 mt-1" style={{ fontFamily: 'var(--font-corps)' }}>0 = premier affiché</p>
+                <input type="number" className="input-field w-24" value={form.ordre} onChange={e => F('ordre', e.target.value)} min="0" />
+                <p className="text-xs text-gray-400 mt-1">0 = premier affiché</p>
               </div>
             </div>
-            <div className="flex gap-3 mt-6">
+
+            <div className="flex gap-3 p-6 pt-0">
               <button onClick={() => setOpen(false)} className="btn-outline flex-1">Annuler</button>
               <button onClick={save} className="btn-primary flex-1 flex items-center justify-center gap-2"><Save size={15} /> Enregistrer</button>
             </div>
