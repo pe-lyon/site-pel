@@ -31,6 +31,7 @@ export async function updateSession(request: NextRequest) {
   const publicPrefixes = [
     '/', '/presentation', '/bureau', '/groupes',
     '/actualites', '/agenda', '/ressources', '/contact',
+    '/journal-officiel', '/parlementaires', '/resultats',
     '/seance', '/login', '/admin/login', '/auth/callback', '/mot-de-passe-oublie',
   ]
   const isPublic = publicPrefixes.some(prefix =>

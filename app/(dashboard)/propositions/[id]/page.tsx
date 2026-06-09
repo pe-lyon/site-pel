@@ -130,14 +130,11 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    const [profileRes, billRes, cosRes, sessRes, amendRes, oratRes, motRes] = await Promise.all([
+    const [profileRes, billRes, cosRes, sessRes] = await Promise.all([
       supabase.from('profiles').select('id, first_name, last_name, role, group_id').eq('id', user.id).single(),
       supabase.from('bills').select('*, profiles(id, first_name, last_name, role, group_id)').eq('id', id).single(),
       supabase.from('bill_cosignataires').select('id, user_id, signed_at, profiles(first_name, last_name, role)').eq('bill_id', id).order('signed_at'),
       supabase.from('vote_sessions').select('id, title, opened_at, closed_at, status').eq('bill_id', id).order('created_at', { ascending: false }),
-      supabase.from('amendements').select('*, profiles(first_name, last_name)').eq('bill_id', id).order('created_at'),
-      supabase.from('liste_orateurs').select('*, profiles(first_name, last_name, group_id)').eq('bill_id', id).order('position'),
-      supabase.from('motions_procedure').select('*, profiles(first_name, last_name)').eq('bill_id', id).order('created_at', { ascending: false }),
     ])
 
     if (billRes.error || !billRes.data) { router.push('/propositions'); return }
@@ -146,9 +143,19 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
     setBill(billRes.data as unknown as Bill)
     setCosignataires((cosRes.data as unknown as Cosignataire[]) ?? [])
     setSessions((sessRes.data as VoteSession[]) ?? [])
-    setAmendements((amendRes.data as unknown as Amendement[]) ?? [])
-    setOrateurs((oratRes.data as unknown as Orateur[]) ?? [])
-    setMotions((motRes.data as unknown as Motion[]) ?? [])
+
+    // Nouvelles tables (requièrent la migration — silencieuses si absentes)
+    try {
+      const [amendRes, oratRes, motRes] = await Promise.all([
+        supabase.from('amendements').select('*, profiles(first_name, last_name)').eq('bill_id', id).order('created_at'),
+        supabase.from('liste_orateurs').select('*, profiles(first_name, last_name, group_id)').eq('bill_id', id).order('position'),
+        supabase.from('motions_procedure').select('*, profiles(first_name, last_name)').eq('bill_id', id).order('created_at', { ascending: false }),
+      ])
+      if (!amendRes.error) setAmendements((amendRes.data as unknown as Amendement[]) ?? [])
+      if (!oratRes.error) setOrateurs((oratRes.data as unknown as Orateur[]) ?? [])
+      if (!motRes.error) setMotions((motRes.data as unknown as Motion[]) ?? [])
+    } catch { /* tables pas encore créées */ }
+
     setLoading(false)
   }, [id, supabase, router])
 
@@ -159,9 +166,6 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
     if (!id) return
     const channel = supabase
       .channel(`bill-${id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'amendements', filter: `bill_id=eq.${id}` }, () => load())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'liste_orateurs', filter: `bill_id=eq.${id}` }, () => load())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'motions_procedure', filter: `bill_id=eq.${id}` }, () => load())
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bills', filter: `id=eq.${id}` }, () => load())
       .subscribe()
     return () => { supabase.removeChannel(channel) }

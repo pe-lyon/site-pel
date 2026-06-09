@@ -1,5 +1,10 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import Link from 'next/link'
+
+const adminClient = createSupabaseClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 import { BookOpen, CheckCircle, Calendar, User, FileText, ChevronRight } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
@@ -22,9 +27,7 @@ interface Bill {
 }
 
 export default async function JournalOfficielPage() {
-  const supabase = await createClient()
-
-  const { data: bills } = await supabase
+  const { data: bills } = await adminClient
     .from('bills')
     .select('id, number, title, description, type, created_at, updated_at, profiles(first_name, last_name)')
     .eq('status', 'adoptee')

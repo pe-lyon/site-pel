@@ -75,29 +75,34 @@ export default function PresidentRecevabilitePage() {
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
     if (!profile || profile.role !== 'president_seance') { router.push('/'); return }
 
-    const [billsRes, motionsRes, amendsRes, oratRes] = await Promise.all([
-      supabase.from('bills')
-        .select('*, profiles(first_name, last_name)')
-        .in('status', ['deposee', 'recevable', 'inscrit_ordre_du_jour', 'en_debat'])
-        .order('created_at', { ascending: false }),
-      supabase.from('motions_procedure')
-        .select('*, profiles(first_name, last_name), bills(title, number)')
-        .eq('statut', 'en_attente')
-        .order('created_at'),
-      supabase.from('amendements')
-        .select('*, profiles(first_name, last_name), bills(title, number)')
-        .eq('statut', 'depose')
-        .order('created_at'),
-      supabase.from('liste_orateurs')
-        .select('*, profiles(first_name, last_name), bills(title, number)')
-        .eq('a_parle', false)
-        .order('position'),
-    ])
+    const billsRes = await supabase.from('bills')
+      .select('*, profiles(first_name, last_name)')
+      .in('status', ['deposee', 'recevable', 'inscrit_ordre_du_jour', 'en_debat'])
+      .order('created_at', { ascending: false })
 
     setBills((billsRes.data ?? []) as unknown as Bill[])
-    setMotions((motionsRes.data ?? []) as unknown as Motion[])
-    setAmendements((amendsRes.data ?? []) as unknown as Amendement[])
-    setOrateurs((oratRes.data ?? []) as unknown as Orateur[])
+
+    // Nouvelles tables — silencieuses si migration pas encore appliquée
+    try {
+      const [motionsRes, amendsRes, oratRes] = await Promise.all([
+        supabase.from('motions_procedure')
+          .select('*, profiles(first_name, last_name), bills(title, number)')
+          .eq('statut', 'en_attente')
+          .order('created_at'),
+        supabase.from('amendements')
+          .select('*, profiles(first_name, last_name), bills(title, number)')
+          .eq('statut', 'depose')
+          .order('created_at'),
+        supabase.from('liste_orateurs')
+          .select('*, profiles(first_name, last_name), bills(title, number)')
+          .eq('a_parle', false)
+          .order('position'),
+      ])
+      if (!motionsRes.error) setMotions((motionsRes.data ?? []) as unknown as Motion[])
+      if (!amendsRes.error) setAmendements((amendsRes.data ?? []) as unknown as Amendement[])
+      if (!oratRes.error) setOrateurs((oratRes.data ?? []) as unknown as Orateur[])
+    } catch { /* tables pas encore créées */ }
+
     setLoading(false)
   }, [supabase, router])
 
