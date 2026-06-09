@@ -34,7 +34,12 @@ export async function getSettings(keys: string[]): Promise<Record<string, string
 export async function getEvenements(limit?: number) {
   try {
     const supabase = createPublicClient()
-    let q = supabase.from('evenements').select('*').order('date', { ascending: true })
+    const today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
+    let q = supabase
+      .from('evenements')
+      .select('*')
+      .gte('date', today)           // uniquement les événements présents et futurs
+      .order('date', { ascending: true })
     if (limit) q = q.limit(limit)
     const { data } = await q
     return data ?? []

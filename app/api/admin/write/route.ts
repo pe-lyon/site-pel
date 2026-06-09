@@ -1,6 +1,7 @@
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 
 const adminClient = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -52,6 +53,21 @@ export async function POST(request: Request) {
     }
 
     if (result.error) throw result.error
+
+    // Invalider le cache des pages publiques concernées
+    const PATH_MAP: Record<string, string[]> = {
+      evenements:            ['/', '/agenda'],
+      actualites:            ['/', '/actualites'],
+      actualites_categories: ['/actualites'],
+      ressources:            ['/ressources'],
+      bureau_membres:        ['/bureau'],
+      presentation_timeline: ['/presentation'],
+      chiffres_cles:         ['/'],
+      site_settings:         ['/', '/presentation'],
+    }
+    const paths = PATH_MAP[table] ?? []
+    for (const path of paths) revalidatePath(path)
+
     return NextResponse.json({ data: result.data })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 400 })

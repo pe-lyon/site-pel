@@ -1,7 +1,7 @@
 import { getSettings, getTimeline } from '@/lib/cms'
 import SiteHero from '@/components/site/SiteHero'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function PresentationPage() {
   const [settings, timeline] = await Promise.all([

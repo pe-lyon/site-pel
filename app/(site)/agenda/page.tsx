@@ -2,7 +2,7 @@ import { getEvenements } from '@/lib/cms'
 import SiteHero from '@/components/site/SiteHero'
 import AgendaCalendar from '@/components/site/AgendaCalendar'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function AgendaPage() {
   const evenements = await getEvenements()

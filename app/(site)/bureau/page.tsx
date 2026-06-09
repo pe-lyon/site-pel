@@ -3,7 +3,7 @@ import SiteHero from '@/components/site/SiteHero'
 import { getInitials } from '@/lib/utils'
 import { Mail, Linkedin } from 'lucide-react'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 function parseRole(role: string) {
   const parts = role.split(' > ')

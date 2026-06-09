@@ -2,7 +2,7 @@ import { getRessources } from '@/lib/cms'
 import SiteHero from '@/components/site/SiteHero'
 import { FileText, Download } from 'lucide-react'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function RessourcesPage() {
   const docs = await getRessources()
