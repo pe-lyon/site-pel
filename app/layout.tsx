@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Poppins, Barlow_Condensed } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
@@ -23,8 +23,12 @@ export const metadata: Metadata = {
   title: 'Parlement des Étudiants de Lyon',
   description: 'Le Parlement des Étudiants de Lyon est une institution parlementaire étudiante indépendante.',
   manifest: '/manifest.json',
-  themeColor: '#04439a',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'PEL' },
+}
+
+// Next.js 14 : themeColor doit être dans viewport, pas dans metadata
+export const viewport: Viewport = {
+  themeColor: '#04439a',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
