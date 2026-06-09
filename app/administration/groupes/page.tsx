@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { PoliticalGroup, Profile } from '@/types'
 import toast from 'react-hot-toast'
-import { Plus, Pencil, Trash2, X, Save, Users } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Save, Users, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import TopBar from '@/components/layout/TopBar'
 
 const POLITICAL_POSITIONS = [
@@ -51,7 +52,19 @@ async function adminRead(table: string, select = '*', order?: { col: string, asc
   return result.data
 }
 
+interface DissolutionRequest {
+  id: string
+  groupe_id: string
+  demandeur_id: string
+  motif: string | null
+  statut: 'en_attente' | 'approuvee' | 'refusee'
+  created_at: string
+  political_groups: { name: string; color: string } | null
+  profiles: { first_name: string; last_name: string } | null
+}
+
 export default function GroupesPage() {
+  const supabase = createClient()
   const [groups, setGroups] = useState<PoliticalGroup[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
@@ -59,6 +72,26 @@ export default function GroupesPage() {
   const [editing, setEditing] = useState<PoliticalGroup | null>(null)
   const [form, setForm] = useState<GroupForm>(emptyForm)
   const [saving, setSaving] = useState(false)
+  const [dissolutionRequests, setDissolutionRequests] = useState<DissolutionRequest[]>([])
+
+  const fetchDissolutionRequests = useCallback(async () => {
+    const { data } = await supabase
+      .from('dissolution_requests')
+      .select('*, political_groups(name, color), profiles!dissolution_requests_demandeur_id_fkey(first_name, last_name)')
+      .order('created_at', { ascending: false })
+    setDissolutionRequests((data ?? []) as DissolutionRequest[])
+  }, [supabase])
+
+  async function handleDissolutionStatut(id: string, statut: 'approuvee' | 'refusee') {
+    const { data: { user } } = await supabase.auth.getUser()
+    const { error } = await supabase
+      .from('dissolution_requests')
+      .update({ statut, traite_par: user?.id, traite_le: new Date().toISOString() })
+      .eq('id', id)
+    if (error) { toast.error('Erreur : ' + error.message); return }
+    toast.success(statut === 'approuvee' ? 'Demande approuvée' : 'Demande refusée')
+    fetchDissolutionRequests()
+  }
 
   const fetchData = useCallback(async () => {
     try {
@@ -77,7 +110,8 @@ export default function GroupesPage() {
 
   useEffect(() => {
     fetchData()
-  }, [fetchData])
+    fetchDissolutionRequests()
+  }, [fetchData, fetchDissolutionRequests])
 
   function openCreate() {
     setEditing(null)
@@ -176,6 +210,62 @@ export default function GroupesPage() {
     <div>
       <TopBar title="Gestion des groupes politiques" />
       <div className="p-6 space-y-6">
+        {/* Demandes de dissolution */}
+        {dissolutionRequests.filter(r => r.statut === 'en_attente').length > 0 && (
+          <div className="card border-2 border-red-200 bg-red-50/50">
+            <h3 className="section-title flex items-center gap-2 text-red-700 mb-4" style={{ fontSize: '1rem' }}>
+              <AlertTriangle size={18} />
+              Demandes de dissolution ({dissolutionRequests.filter(r => r.statut === 'en_attente').length} en attente)
+            </h3>
+            <div className="space-y-3">
+              {dissolutionRequests.filter(r => r.statut === 'en_attente').map(req => (
+                <div key={req.id} className="bg-white rounded-xl p-4 border border-red-100 flex flex-col gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-3 h-3 rounded-full mt-1 flex-shrink-0" style={{ background: req.political_groups?.color ?? '#9ca3af' }} />
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900">{req.political_groups?.name ?? 'Groupe inconnu'}</p>
+                      <p className="text-xs text-gray-500">
+                        Demande de {req.profiles?.first_name} {req.profiles?.last_name} — {new Date(req.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                      {req.motif && <p className="text-sm text-gray-700 mt-2 italic">&laquo; {req.motif} &raquo;</p>}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      onClick={() => handleDissolutionStatut(req.id, 'refusee')}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors"
+                    >
+                      <XCircle size={14} /> Refuser
+                    </button>
+                    <button
+                      onClick={() => handleDissolutionStatut(req.id, 'approuvee')}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-red-700 border border-red-300 hover:bg-red-50 transition-colors"
+                    >
+                      <CheckCircle size={14} /> Approuver
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {dissolutionRequests.filter(r => r.statut !== 'en_attente').length > 0 && (
+              <details className="mt-4">
+                <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-600">Voir l&apos;historique des demandes traitées</summary>
+                <div className="mt-2 space-y-2">
+                  {dissolutionRequests.filter(r => r.statut !== 'en_attente').map(req => (
+                    <div key={req.id} className="flex items-center gap-2 text-sm text-gray-500 py-1 border-b border-gray-100 last:border-0">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${req.statut === 'approuvee' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                        {req.statut === 'approuvee' ? 'Approuvée' : 'Refusée'}
+                      </span>
+                      <span>{req.political_groups?.name}</span>
+                      <span className="text-gray-400">— {req.profiles?.first_name} {req.profiles?.last_name}</span>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
+        )}
+
         <div className="flex justify-between items-center">
           <p className="text-gray-500 text-sm">{groups.length} groupe(s) politique(s)</p>
           <button onClick={openCreate} className="btn-primary flex items-center gap-2">

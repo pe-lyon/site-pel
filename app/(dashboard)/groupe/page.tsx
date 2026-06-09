@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
-import { Flag, Users, Save, LogOut, Plus } from 'lucide-react'
+import { Flag, Users, Save, LogOut, Plus, Crown, AlertTriangle, UserMinus } from 'lucide-react'
 import TopBar from '@/components/layout/TopBar'
 import GroupeMessages from '@/components/GroupeMessages'
 
@@ -162,6 +162,86 @@ export default function GroupePage() {
     }
   }
 
+  // Président : démissionner (repasser parlementaire, rester dans le groupe)
+  async function handleResign() {
+    if (!profile) return
+    const myGroupFull = allGroups.find(g => g.id === profile.group_id)
+    const otherMembers = (myGroupFull?.profiles ?? []).filter(m => m.id !== profile.id)
+    if (otherMembers.length === 0) {
+      toast.error('Vous êtes le seul membre. Quittez le groupe ou demandez sa dissolution.')
+      return
+    }
+    if (!confirm('Démissionner de la présidence ? Vous resterez membre du groupe avec le rôle Parlementaire.')) return
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: 'parlementaire' })
+      .eq('id', profile.id)
+    if (error) { toast.error('Erreur : ' + error.message); return }
+    // Retirer president_id du groupe
+    await supabase.from('political_groups').update({ president_id: null }).eq('id', profile.group_id)
+    toast.success('Vous avez démissionné de la présidence.')
+    window.location.reload()
+  }
+
+  // Président : quitter le groupe (group_id = null, role = parlementaire)
+  async function handlePresidentLeave() {
+    if (!profile) return
+    const myGroupFull = allGroups.find(g => g.id === profile.group_id)
+    const otherMembers = (myGroupFull?.profiles ?? []).filter(m => m.id !== profile.id)
+    if (otherMembers.length > 0) {
+      toast.error('Nommez d\'abord un nouveau président avant de quitter le groupe.')
+      return
+    }
+    if (!confirm('Quitter le groupe ? Comme vous êtes le seul membre, le groupe sera vide.')) return
+    await supabase.from('political_groups').update({ president_id: null }).eq('id', profile.group_id)
+    const { error } = await supabase
+      .from('profiles')
+      .update({ group_id: null, role: 'parlementaire' })
+      .eq('id', profile.id)
+    if (error) { toast.error('Erreur : ' + error.message); return }
+    toast.success('Vous avez quitté le groupe.')
+    window.location.reload()
+  }
+
+  // Président : demande de dissolution
+  const [showDissolutionModal, setShowDissolutionModal] = useState(false)
+  const [dissolutionMotif, setDissolutionMotif] = useState('')
+  const [sendingDissolution, setSendingDissolution] = useState(false)
+
+  async function handleDissolutionRequest() {
+    if (!profile || !dissolutionMotif.trim()) return
+    const myGroupFull = allGroups.find(g => g.id === profile.group_id)
+    setSendingDissolution(true)
+    try {
+      const { error } = await supabase.from('dissolution_requests').insert({
+        groupe_id: profile.group_id,
+        demandeur_id: profile.id,
+        motif: dissolutionMotif.trim(),
+      })
+      if (error) throw error
+      toast.success(`Demande de dissolution du groupe "${myGroupFull?.name}" envoyée. Elle sera traitée par le président de séance ou l'administration.`)
+      setShowDissolutionModal(false)
+      setDissolutionMotif('')
+    } catch (err: unknown) {
+      toast.error('Erreur : ' + (err instanceof Error ? err.message : String(err)))
+    } finally {
+      setSendingDissolution(false)
+    }
+  }
+
+  // Président : nommer un nouveau président parmi les membres
+  async function handlePromote(memberId: string, memberName: string) {
+    if (!profile) return
+    if (!confirm(`Nommer ${memberName} comme nouveau président du groupe ?`)) return
+    const { error: e1 } = await supabase.from('profiles').update({ role: 'president_groupe' }).eq('id', memberId)
+    if (e1) { toast.error('Erreur : ' + e1.message); return }
+    const { error: e2 } = await supabase.from('profiles').update({ role: 'parlementaire' }).eq('id', profile.id)
+    if (e2) { toast.error('Erreur : ' + e2.message); return }
+    await supabase.from('political_groups').update({ president_id: memberId }).eq('id', profile.group_id)
+    toast.success(`${memberName} est maintenant président du groupe.`)
+    window.location.reload()
+  }
+
   async function handleCreateGroup(e: React.FormEvent) {
     e.preventDefault()
     if (!profile) return
@@ -293,15 +373,100 @@ export default function GroupePage() {
                     >
                       {m.first_name.charAt(0)}{m.last_name.charAt(0)}
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">{m.first_name} {m.last_name}</p>
-                      <p className="text-xs text-gray-500 capitalize">{m.role === 'president_groupe' ? 'Président' : 'Parlementaire'}</p>
+                      <p className="text-xs text-gray-500 capitalize">{m.role === 'president_groupe' ? '👑 Président' : 'Parlementaire'}</p>
                     </div>
+                    {m.id !== currentUserId && m.role !== 'president_groupe' && (
+                      <button
+                        onClick={() => handlePromote(m.id, `${m.first_name} ${m.last_name}`)}
+                        className="text-xs px-2 py-1 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 transition-colors flex items-center gap-1"
+                        title="Nommer président"
+                      >
+                        <Crown size={12} /> Nommer
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
             )}
           </div>
+
+          {/* Zone actions sensibles */}
+          <div style={{ ...glassCard, borderTop: '3px solid #fca5a5', background: 'rgba(255,245,245,0.7)' }}>
+            <h2 className="section-title mb-1 text-red-700 flex items-center gap-2" style={{ fontSize: '1rem' }}>
+              <AlertTriangle size={16} /> Actions de présidence
+            </h2>
+            <p className="text-xs text-gray-500 mb-4">Ces actions sont irréversibles ou engagent votre groupe officiellement.</p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleResign}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-orange-700 border border-orange-200 hover:bg-orange-50 transition-colors text-left"
+              >
+                <UserMinus size={16} />
+                <div>
+                  <p className="font-semibold">Démissionner de la présidence</p>
+                  <p className="text-xs text-orange-500 font-normal">Vous restez membre du groupe avec le rôle Parlementaire</p>
+                </div>
+              </button>
+              <button
+                onClick={handlePresidentLeave}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-700 border border-red-200 hover:bg-red-50 transition-colors text-left"
+              >
+                <LogOut size={16} />
+                <div>
+                  <p className="font-semibold">Quitter le groupe</p>
+                  <p className="text-xs text-red-500 font-normal">Seulement si vous êtes le seul membre, ou après avoir nommé un successeur</p>
+                </div>
+              </button>
+              <button
+                onClick={() => setShowDissolutionModal(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-900 border border-red-300 hover:bg-red-50 transition-colors text-left"
+              >
+                <AlertTriangle size={16} />
+                <div>
+                  <p className="font-semibold">Demander la dissolution du groupe</p>
+                  <p className="text-xs text-red-600 font-normal">Envoie une demande officielle au président de séance</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Modale dissolution */}
+          {showDissolutionModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}>
+              <div style={{ ...glassCard, maxWidth: '440px', width: '100%', background: 'rgba(255,255,255,0.97)' }}>
+                <h3 className="font-bold text-red-700 mb-1 flex items-center gap-2" style={{ fontFamily: 'var(--font-titre)', fontSize: '1.1rem' }}>
+                  <AlertTriangle size={18} /> Demande de dissolution
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  Cette demande sera transmise au président de séance et à l&apos;administration. Expliquez brièvement les raisons.
+                </p>
+                <textarea
+                  value={dissolutionMotif}
+                  onChange={e => setDissolutionMotif(e.target.value)}
+                  placeholder="Motif de la demande de dissolution..."
+                  rows={4}
+                  className="input-field mb-4"
+                  style={{ resize: 'vertical' }}
+                />
+                <div className="flex gap-3 justify-end">
+                  <button onClick={() => { setShowDissolutionModal(false); setDissolutionMotif('') }} className="btn-secondary">
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleDissolutionRequest}
+                    disabled={!dissolutionMotif.trim() || sendingDissolution}
+                    className="btn-primary bg-red-600 hover:bg-red-700 flex items-center gap-2 disabled:opacity-50"
+                    style={{ background: '#dc2626' }}
+                  >
+                    <AlertTriangle size={14} />
+                    {sendingDissolution ? 'Envoi...' : 'Envoyer la demande'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {profile?.group_id && currentUserId && (
             <GroupeMessages
