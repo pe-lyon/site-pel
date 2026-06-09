@@ -62,8 +62,8 @@ export default function AccessibilityMenu() {
       id="accessibility-menu"
       style={{
         position: 'fixed',
-        bottom: '5.5rem',
-        right: '1.5rem',
+        bottom: '1.5rem',
+        right: '5.5rem',
         zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',
@@ -195,8 +195,8 @@ export default function AccessibilityMenu() {
         onClick={() => setOpen(!open)}
         aria-label="Options d'accessibilité"
         style={{
-          width: '44px',
-          height: '44px',
+          width: '48px',
+          height: '48px',
           borderRadius: '999px',
           background: open ? 'var(--pel-bleu)' : 'rgba(255,255,255,0.92)',
           backdropFilter: 'blur(16px)',

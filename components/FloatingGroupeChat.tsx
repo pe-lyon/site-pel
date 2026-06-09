@@ -134,7 +134,7 @@ export default function FloatingGroupeChat() {
       {open && (
         <div style={{
           position: 'fixed',
-          bottom: '5.5rem',
+          bottom: '4.5rem',
           right: '1.5rem',
           width: '380px',
           maxWidth: 'calc(100vw - 2rem)',
@@ -191,8 +191,8 @@ export default function FloatingGroupeChat() {
           position: 'fixed',
           bottom: '1.5rem',
           right: '1.5rem',
-          width: '56px',
-          height: '56px',
+          width: '48px',
+          height: '48px',
           borderRadius: '50%',
           background: buttonColor,
           color: 'white',
