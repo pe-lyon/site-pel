@@ -206,14 +206,10 @@ export default async function MembrePage({ params }: { params: Promise<{ id: str
                 const { fonction: f } = parseRole(autre.role ?? '')
                 return (
                   <Link key={autre.id} href={`/bureau/${autre.id}`} style={{ textDecoration: 'none' }}>
-                    <div style={{
+                    <div className="hover:-translate-y-0.5 hover:shadow-lg transition-all" style={{
                       background: 'white', borderRadius: '1rem', padding: '1rem',
                       textAlign: 'center', boxShadow: '0 2px 12px rgba(4,67,154,0.07)',
-                      transition: 'transform 0.2s, box-shadow 0.2s',
-                    }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 20px rgba(4,67,154,0.13)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(4,67,154,0.07)' }}
-                    >
+                    }}>
                       <div style={{
                         width: 48, height: 48, borderRadius: '50%', margin: '0 auto 0.5rem',
                         background: 'var(--pel-bleu)', display: 'flex', alignItems: 'center',
