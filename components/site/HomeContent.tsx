@@ -88,11 +88,6 @@ export default function HomeContent({ settings, evenements, actualites, chiffres
             {heroTitre}
           </h1>
 
-          <p className="animate-slide-up delay-200 text-blue-200/90 max-w-2xl mx-auto mb-6 text-lg leading-relaxed"
-            style={{ fontFamily: 'var(--font-corps)' }}>
-            {heroSousTitre}
-          </p>
-
           <div className="animate-slide-up delay-200">
             <TypewriterText />
           </div>
