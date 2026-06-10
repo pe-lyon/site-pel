@@ -11,7 +11,7 @@ interface Phrase {
 const PHRASES: Phrase[] = [
   {
     text: "l'institution parlementaire étudiante de référence à Lyon.",
-    pauseMs: 8000,
+    pauseMs: 15000,
     highlight: true,
   },
   { text: 'une association apartisane.', pauseMs: 2800 },
@@ -68,7 +68,7 @@ export default function TypewriterText() {
         {isHighlight ? (
           <span style={{
             fontWeight: 700,
-            color: 'white',
+            color: '#e84444',
             animation: 'glow-pulse 2.5s ease-in-out infinite',
           }}>
             {displayed}
@@ -91,8 +91,8 @@ export default function TypewriterText() {
       <style>{`
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
         @keyframes glow-pulse {
-          0%,100% { text-shadow: 0 0 12px rgba(147,197,253,0.4), 0 0 30px rgba(147,197,253,0.15); }
-          50%      { text-shadow: 0 0 24px rgba(147,197,253,0.7), 0 0 60px rgba(147,197,253,0.30); }
+          0%,100% { text-shadow: 0 0 12px rgba(232,68,68,0.5), 0 0 30px rgba(232,68,68,0.2); }
+          50%      { text-shadow: 0 0 22px rgba(232,68,68,0.8), 0 0 50px rgba(232,68,68,0.35); }
         }
       `}</style>
     </div>
