@@ -3,27 +3,41 @@ import SiteHero from '@/components/site/SiteHero'
 
 export const dynamic = 'force-dynamic'
 
+const DEFAULT_VALEURS = [
+  { id: '1', emoji: '⚖️', titre: 'DÉMOCRATIE', texte: 'Tout parlementaire a une voix égale. Chaque vote compte autant que celui du voisin.' },
+  { id: '2', emoji: '🗣️', titre: 'DÉBAT', texte: "La confrontation d'idées, dans le respect mutuel, est le moteur de notre démocratie." },
+  { id: '3', emoji: '🤝', titre: 'COLLÉGIALITÉ', texte: "Nous avançons ensemble, dans l'intérêt de l'institution et de ses membres." },
+]
+
 export default async function PresentationPage() {
   const [settings, timeline] = await Promise.all([
-    getSettings(['presentation_mission', 'presentation_valeurs']),
+    getSettings([
+      'presentation_mission',
+      'presentation_valeurs_json',
+      'presentation_hero_badge',
+      'presentation_hero_titre',
+      'presentation_hero_description',
+    ]),
     getTimeline(),
   ])
 
   const missionText = settings['presentation_mission']
-  const valeursText = settings['presentation_valeurs']
 
-  const defaultValeurs = [
-    { emoji: '⚖️', titre: 'DÉMOCRATIE', texte: 'Tout parlementaire a une voix égale. Chaque vote compte autant que celui du voisin.' },
-    { emoji: '🗣️', titre: 'DÉBAT', texte: "La confrontation d'idées, dans le respect mutuel, est le moteur de notre démocratie." },
-    { emoji: '🤝', titre: 'COLLÉGIALITÉ', texte: "Nous avançons ensemble, dans l'intérêt de l'institution et de ses membres." },
-  ]
+  let valeurs = DEFAULT_VALEURS
+  if (settings['presentation_valeurs_json']) {
+    try { valeurs = JSON.parse(settings['presentation_valeurs_json']) } catch { /* garde les défauts */ }
+  }
+
+  const heroBadge = settings['presentation_hero_badge'] || 'Notre institution'
+  const heroTitre = settings['presentation_hero_titre'] || 'Présentation'
+  const heroDescription = settings['presentation_hero_description'] || "Découvrez l'histoire, la mission et les valeurs du Parlement des Étudiants de Lyon."
 
   return (
     <div>
       <SiteHero
-        badge="Notre institution"
-        title="Présentation"
-        description="Découvrez l'histoire, la mission et les valeurs du Parlement des Étudiants de Lyon."
+        badge={heroBadge}
+        title={heroTitre}
+        description={heroDescription}
       />
 
       {/* Mission */}
@@ -101,20 +115,14 @@ export default async function PresentationPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="mb-12 text-center" style={{ fontFamily: 'var(--font-titre)', fontSize: '2.5rem', color: 'var(--pel-bleu)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>NOS VALEURS</h2>
           <div className="grid md:grid-cols-3 gap-8">
-            {defaultValeurs.map((v, i) => (
-              <div
-                key={i}
-                className="glass-card text-center p-8 rounded-2xl"
-              >
+            {valeurs.map((v: any, i: number) => (
+              <div key={v.id ?? i} className="glass-card text-center p-8 rounded-2xl">
                 <p className="text-5xl mb-4">{v.emoji}</p>
                 <h3 className="mb-3" style={{ fontFamily: 'var(--font-titre)', fontSize: '1.5rem', color: 'var(--pel-bleu)', fontWeight: 700 }}>{v.titre}</h3>
                 <p className="text-gray-600" style={{ fontFamily: 'var(--font-corps)' }}>{v.texte}</p>
               </div>
             ))}
           </div>
-          {valeursText && (
-            <p className="mt-12 text-center text-gray-600 max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-corps)' }}>{valeursText}</p>
-          )}
         </div>
       </section>
     </div>
