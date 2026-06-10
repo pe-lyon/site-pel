@@ -90,10 +90,12 @@ export default function AdminBureauPage() {
       photo_url: form.photo_url || null,
     }
     if (editing) {
-      await apiWrite('bureau_membres', 'update', data, { id: editing })
+      const res = await apiWrite('bureau_membres', 'update', data, { id: editing })
+      if (res.error) return toast.error(`Erreur : ${res.error}`)
       toast.success('Membre modifié')
     } else {
-      await apiWrite('bureau_membres', 'insert', data)
+      const res = await apiWrite('bureau_membres', 'insert', data)
+      if (res.error) return toast.error(`Erreur : ${res.error}`)
       toast.success('Membre ajouté')
     }
     setOpen(false); load()

@@ -8,18 +8,16 @@ const adminClient = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-async function verifyPresident() {
+async function verifyAdmin() {
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'president_seance') return null
   return user
 }
 
 export async function POST(request: Request) {
-  const user = await verifyPresident()
-  if (!user) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+  const user = await verifyAdmin()
+  if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
 
   const { table, operation, data, filters } = await request.json()
 
