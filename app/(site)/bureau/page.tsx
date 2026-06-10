@@ -106,14 +106,14 @@ export default async function BureauPage() {
                           )}
 
                           {/* Liens */}
-                          <div className="flex justify-center gap-2 mt-4" onClick={e => e.preventDefault()}>
+                          <div className="flex justify-center gap-2 mt-4">
                             {m.email && (
-                              <a href={`mailto:${m.email}`} className="p-2 rounded-lg hover:bg-white/50 transition-colors text-gray-400 hover:text-[#04439a]" onClick={e => e.stopPropagation()}>
+                              <a href={`mailto:${m.email}`} className="p-2 rounded-lg hover:bg-white/50 transition-colors text-gray-400 hover:text-[#04439a]">
                                 <Mail size={15} />
                               </a>
                             )}
                             {m.linkedin_url && (
-                              <a href={m.linkedin_url} target="_blank" rel="noreferrer" className="p-2 rounded-lg hover:bg-white/50 transition-colors text-gray-400 hover:text-[#04439a]" onClick={e => e.stopPropagation()}>
+                              <a href={m.linkedin_url} target="_blank" rel="noreferrer" className="p-2 rounded-lg hover:bg-white/50 transition-colors text-gray-400 hover:text-[#04439a]">
                                 <Linkedin size={15} />
                               </a>
                             )}
