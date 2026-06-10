@@ -14,12 +14,11 @@ const PHRASES: Phrase[] = [
     pauseMs: 15000,
     highlight: true,
   },
-  { text: 'une association apartisane.', pauseMs: 2800 },
-  { text: 'engagés, sans ligne politique imposée.', pauseMs: 2800 },
-  { text: 'des étudiants qui croient en la démocratie.', pauseMs: 2800 },
+  { text: 'une association apartisane, ouverte à toutes et à tous.', pauseMs: 3000 },
+  { text: 'des étudiantes et étudiants qui croient en la démocratie.', pauseMs: 3000 },
   { text: 'là pour réconcilier les jeunes avec la politique.', pauseMs: 3000 },
-  { text: 'des parlementaires, pas des spectateurs.', pauseMs: 2500 },
-  { text: 'un laboratoire de démocratie.', pauseMs: 2200 },
+  { text: 'des parlementaires — femmes et hommes — pas des spectateurs.', pauseMs: 3000 },
+  { text: 'un laboratoire de démocratie, pour toutes les convictions.', pauseMs: 2800 },
 ]
 
 export default function TypewriterText() {
