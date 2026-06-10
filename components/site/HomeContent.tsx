@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import TypewriterText from './TypewriterText'
 
 interface Props {
   settings: Record<string, string>
@@ -87,10 +88,14 @@ export default function HomeContent({ settings, evenements, actualites, chiffres
             {heroTitre}
           </h1>
 
-          <p className="animate-slide-up delay-200 text-blue-200/90 max-w-2xl mx-auto mb-10 text-lg leading-relaxed"
+          <p className="animate-slide-up delay-200 text-blue-200/90 max-w-2xl mx-auto mb-6 text-lg leading-relaxed"
             style={{ fontFamily: 'var(--font-corps)' }}>
             {heroSousTitre}
           </p>
+
+          <div className="animate-slide-up delay-200">
+            <TypewriterText />
+          </div>
 
 <div className="animate-slide-up delay-300 flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/presentation" className="hero-cta-rouge">
@@ -102,11 +107,6 @@ export default function HomeContent({ settings, evenements, actualites, chiffres
             </Link>
           </div>
 
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-35">
-            <div className="w-5 h-8 border border-white/50 rounded-full flex items-start justify-center p-1">
-              <div className="w-1 h-2 bg-white rounded-full animate-bounce" />
-            </div>
-          </div>
         </div>
       </section>
 
