@@ -1,5 +1,6 @@
 import { getActualites } from '@/lib/cms'
 import SiteHero from '@/components/site/SiteHero'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,9 +26,11 @@ export default async function ActualitesPage() {
           ) : (
             <div className="grid md:grid-cols-3 gap-8">
               {articles.map((a: any) => (
-                <article
+                <Link
                   key={a.id}
-                  className="glass-card rounded-2xl overflow-hidden group"
+                  href={`/actualites/${a.slug}`}
+                  className="glass-card rounded-2xl overflow-hidden group hover:scale-[1.02] hover:shadow-xl transition-all block"
+                  style={{ textDecoration: 'none' }}
                 >
                   <div className="h-44 flex items-center justify-center" style={{ background: 'var(--pel-bleu-light)' }}>
                     <span style={{ fontFamily: 'var(--font-titre)', fontSize: '3rem', color: 'var(--pel-bleu)', opacity: 0.3 }}>PEL</span>
@@ -38,8 +41,9 @@ export default async function ActualitesPage() {
                     {a.extrait && <p className="text-sm text-gray-500 mb-4 leading-relaxed line-clamp-3" style={{ fontFamily: 'var(--font-corps)' }}>{a.extrait}</p>}
                     {a.auteur && <p className="text-xs text-gray-400 mb-1" style={{ fontFamily: 'var(--font-corps)' }}>Par {a.auteur}</p>}
                     {a.publie_le && <p className="text-xs text-gray-400" style={{ fontFamily: 'var(--font-corps)' }}>{new Date(a.publie_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
+                    <p className="text-xs mt-3 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--pel-bleu)', fontFamily: 'var(--font-corps)' }}>Lire l'article →</p>
                   </div>
-                </article>
+                </Link>
               ))}
             </div>
           )}

@@ -81,6 +81,20 @@ export default function Header() {
       {/* CTA + burger */}
       <div className="flex items-center gap-2 ml-4">
         <Link
+          href="/rejoindre"
+          className="hidden md:inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-full"
+          style={{
+            background: 'rgba(4,67,154,0.08)',
+            color: 'var(--pel-bleu)',
+            fontFamily: 'var(--font-corps)',
+            border: '1px solid rgba(4,67,154,0.18)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Rejoindre →
+        </Link>
+
+        <Link
           href="/seance"
           className="hidden sm:inline-flex items-center gap-2 text-sm font-semibold text-white px-4 py-2 rounded-full"
           style={{
@@ -173,7 +187,10 @@ export default function Header() {
                   {item.label}
                 </Link>
               ))}
-              <div className="pt-2 pb-1">
+              <div className="pt-2 pb-1 flex flex-col gap-2">
+                <Link href="/rejoindre" className="btn-outline w-full justify-center text-sm">
+                  Rejoindre le PEL →
+                </Link>
                 <Link href="/seance" className="btn-primary w-full justify-center">
                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse mr-2" />
                   Séance en direct
