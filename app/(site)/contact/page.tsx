@@ -63,7 +63,7 @@ export default function ContactPage() {
 
               {/* Instagram */}
               <a
-                href="https://instagram.com/pel_lyon"
+                href="https://instagram.com/pe.lyon"
                 target="_blank"
                 rel="noreferrer"
                 style={{
@@ -90,7 +90,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p style={{ fontFamily: 'var(--font-titre)', fontWeight: 700, color: '#833ab4', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>Instagram</p>
-                  <p style={{ fontFamily: 'var(--font-corps)', color: '#374151', fontSize: '0.95rem', marginTop: '0.15rem' }}>@pel_lyon</p>
+                  <p style={{ fontFamily: 'var(--font-corps)', color: '#374151', fontSize: '0.95rem', marginTop: '0.15rem' }}>@pe.lyon</p>
                 </div>
               </a>
 
