@@ -57,33 +57,58 @@ export default function TypewriterText() {
   const isHighlight = current.highlight && !deleting
 
   return (
-    <p style={{
-      fontFamily: 'var(--font-corps)',
-      fontSize: 'clamp(1.05rem, 2.2vw, 1.35rem)',
-      color: 'rgba(255,255,255,0.90)',
-      marginBottom: '2.5rem',
-      minHeight: '2.2em',
-      transition: 'font-size 0.3s',
-    }}>
-      <span style={{ color: 'rgba(255,255,255,0.55)', fontWeight: 400 }}>Nous sommes </span>
-      <span style={{
-        fontWeight: isHighlight ? 700 : 600,
-        color: isHighlight ? 'white' : 'rgba(255,255,255,0.95)',
-        textShadow: isHighlight ? '0 0 30px rgba(255,255,255,0.35)' : 'none',
-        transition: 'color 0.4s, text-shadow 0.4s',
+    <div style={{ marginBottom: '2.5rem', minHeight: '3.5em' }}>
+      <p style={{
+        fontFamily: 'var(--font-corps)',
+        fontSize: isHighlight ? 'clamp(1.15rem, 2.6vw, 1.6rem)' : 'clamp(1.05rem, 2.2vw, 1.35rem)',
+        color: 'rgba(255,255,255,0.90)',
+        margin: 0,
+        transition: 'font-size 0.4s ease',
       }}>
-        {displayed}
-      </span>
-      <span style={{
-        display: 'inline-block',
-        width: '2px',
-        height: '1em',
-        background: 'rgba(255,255,255,0.85)',
-        marginLeft: '2px',
-        verticalAlign: 'text-bottom',
-        animation: 'blink 1s step-end infinite',
+        <span style={{ color: 'rgba(255,255,255,0.50)', fontWeight: 400 }}>Nous sommes </span>
+        {isHighlight ? (
+          <span style={{
+            fontWeight: 700,
+            background: 'linear-gradient(90deg, #fff 0%, #fde68a 40%, #fbbf24 70%, #fff 100%)',
+            backgroundSize: '200% auto',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            animation: 'shimmer 3s linear infinite',
+          }}>
+            {displayed}
+          </span>
+        ) : (
+          <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.95)' }}>
+            {displayed}
+          </span>
+        )}
+        <span style={{
+          display: 'inline-block',
+          width: '2px',
+          height: '0.9em',
+          background: isHighlight ? '#fbbf24' : 'rgba(255,255,255,0.85)',
+          marginLeft: '2px',
+          verticalAlign: 'text-bottom',
+          animation: 'blink 1s step-end infinite',
+        }} />
+      </p>
+
+      {/* Ligne décorative sous la phrase principale */}
+      <div style={{
+        height: '2px',
+        width: isHighlight ? '100%' : '0%',
+        background: 'linear-gradient(90deg, transparent, #fbbf24, transparent)',
+        borderRadius: '999px',
+        marginTop: '0.5rem',
+        transition: 'width 1s ease',
+        maxWidth: '480px',
       }} />
-      <style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style>
-    </p>
+
+      <style>{`
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
+      `}</style>
+    </div>
   )
 }
