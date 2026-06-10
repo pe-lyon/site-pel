@@ -1,6 +1,6 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Trash2, X, Save } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Plus, Pencil, Trash2, X, Save, Upload, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getInitials } from '@/lib/utils'
 
@@ -31,6 +31,8 @@ export default function AdminBureauPage() {
   const [form, setForm] = useState(EMPTY)
   const [editing, setEditing] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -52,6 +54,29 @@ export default function AdminBureauPage() {
     setEditing(m.id); setOpen(true)
   }
   const F = (k: keyof typeof EMPTY, v: string) => setForm(p => ({ ...p, [k]: v }))
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('bucket', 'bureau-photos')
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (data.url) {
+        F('photo_url', data.url)
+        toast.success('Photo uploadée !')
+      } else {
+        toast.error(data.error ?? 'Erreur upload')
+      }
+    } catch {
+      toast.error('Erreur lors de l\'upload')
+    }
+    setUploading(false)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
 
   async function save() {
     if (!form.prenom || !form.nom || !form.fonction) return toast.error('Prénom, nom et fonction requis')
@@ -180,12 +205,37 @@ export default function AdminBureauPage() {
 
               {/* Photo */}
               <div>
-                <label className="label">Photo (URL)</label>
-                <input className="input-field" value={form.photo_url} onChange={e => F('photo_url', e.target.value)} placeholder="https://..." />
-                <p className="text-xs text-gray-400 mt-1">Lien direct vers une image (JPG, PNG). Laisse vide pour afficher les initiales.</p>
-                {form.photo_url && (
-                  <img src={form.photo_url} alt="Aperçu" className="w-16 h-16 rounded-full object-cover mt-2 border-2 border-gray-200" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                )}
+                <label className="label">Photo</label>
+                <div className="flex items-center gap-4">
+                  {/* Aperçu */}
+                  <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 border-2 border-gray-200 bg-gray-100 flex items-center justify-center text-gray-400 text-sm font-bold" style={{ background: form.photo_url ? undefined : 'var(--pel-bleu)', color: 'white', fontFamily: 'var(--font-titre)' }}>
+                    {form.photo_url
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={form.photo_url} alt="Aperçu" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                      : getInitials(form.prenom, form.nom) || '?'
+                    }
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    {/* Bouton upload */}
+                    <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handlePhotoUpload} />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="w-full flex items-center justify-center gap-2 py-2 px-4 border-2 border-dashed border-gray-300 rounded-xl text-sm text-gray-600 hover:border-[#04439a] hover:text-[#04439a] transition-colors disabled:opacity-50"
+                    >
+                      {uploading ? <><Loader2 size={15} className="animate-spin" /> Upload en cours...</> : <><Upload size={15} /> Choisir une photo</>}
+                    </button>
+                    {/* Ou URL manuelle */}
+                    <input className="input-field text-xs" value={form.photo_url} onChange={e => F('photo_url', e.target.value)} placeholder="Ou coller une URL directement..." />
+                    {form.photo_url && (
+                      <button type="button" onClick={() => F('photo_url', '')} className="text-xs text-red-400 hover:text-red-600">
+                        × Supprimer la photo
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 mt-2">JPG, PNG ou WebP · max 5 Mo. Laisse vide pour afficher les initiales.</p>
               </div>
 
               {/* Rôle */}
