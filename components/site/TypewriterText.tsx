@@ -57,11 +57,10 @@ export default function TypewriterText() {
   const isHighlight = current.highlight && !deleting
 
   return (
-    <div style={{ marginBottom: '2.5rem', minHeight: '3.5em' }}>
+    <div style={{ marginBottom: '2.5rem', minHeight: '3em' }}>
       <p style={{
         fontFamily: 'var(--font-corps)',
         fontSize: isHighlight ? 'clamp(1.15rem, 2.6vw, 1.6rem)' : 'clamp(1.05rem, 2.2vw, 1.35rem)',
-        color: 'rgba(255,255,255,0.90)',
         margin: 0,
         transition: 'font-size 0.4s ease',
       }}>
@@ -69,7 +68,7 @@ export default function TypewriterText() {
         {isHighlight ? (
           <span style={{
             fontWeight: 700,
-            background: 'linear-gradient(90deg, #fff 0%, #fde68a 40%, #fbbf24 70%, #fff 100%)',
+            background: 'linear-gradient(90deg, #ffffff 0%, #e8c0c0 40%, #b21d0b 80%, #e8c0c0 100%)',
             backgroundSize: '200% auto',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
@@ -87,24 +86,12 @@ export default function TypewriterText() {
           display: 'inline-block',
           width: '2px',
           height: '0.9em',
-          background: isHighlight ? '#fbbf24' : 'rgba(255,255,255,0.85)',
+          background: 'rgba(255,255,255,0.85)',
           marginLeft: '2px',
           verticalAlign: 'text-bottom',
           animation: 'blink 1s step-end infinite',
         }} />
       </p>
-
-      {/* Ligne décorative sous la phrase principale */}
-      <div style={{
-        height: '2px',
-        width: isHighlight ? '100%' : '0%',
-        background: 'linear-gradient(90deg, transparent, #fbbf24, transparent)',
-        borderRadius: '999px',
-        marginTop: '0.5rem',
-        transition: 'width 1s ease',
-        maxWidth: '480px',
-      }} />
-
       <style>{`
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
         @keyframes shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
