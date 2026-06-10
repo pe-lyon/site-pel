@@ -58,7 +58,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p style={{ fontFamily: 'var(--font-titre)', fontWeight: 700, color: 'var(--pel-bleu)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>Email</p>
-                  <p style={{ fontFamily: 'var(--font-corps)', color: '#374151', fontSize: '0.95rem', marginTop: '0.15rem' }}>communication.pelyon@gmail.com</p>
+                  <p style={{ fontFamily: 'var(--font-corps)', color: '#374151', fontSize: '0.95rem', marginTop: '0.15rem', wordBreak: 'break-all' }}>communication.pelyon@gmail.com</p>
                 </div>
               </a>
 

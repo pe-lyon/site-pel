@@ -30,7 +30,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       <Header />
-      <main className="relative z-10" style={{ background: 'transparent' }}>
+      <main className="relative z-10" style={{ background: 'transparent', overflowX: 'hidden' }}>
         {children}
       </main>
       <div className="relative z-10">

@@ -183,7 +183,7 @@ export default function HomeContent({ settings, evenements, actualites, chiffres
                     border: '1px solid rgba(255,255,255,0.9)',
                     boxShadow: '0 8px 32px rgba(4,67,154,0.12)',
                   }}>
-                  <p style={{ fontFamily: 'var(--font-titre)', fontSize: '1.6rem', color: 'var(--pel-bleu)', fontWeight: 700 }}>2024</p>
+                  <p style={{ fontFamily: 'var(--font-titre)', fontSize: '1.6rem', color: 'var(--pel-bleu)', fontWeight: 700 }}>2014</p>
                   <p className="text-xs text-gray-400" style={{ fontFamily: 'var(--font-corps)' }}>Fondation</p>
                 </div>
               </div>
