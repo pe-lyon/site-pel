@@ -14,8 +14,10 @@ const PHRASES: Phrase[] = [
     pauseMs: 5000,
     highlight: true,
   },
-  { text: 'des étudiants engagés.', pauseMs: 2200 },
-  { text: 'une institution démocratique.', pauseMs: 2200 },
+  { text: 'une association apartisane.', pauseMs: 2800 },
+  { text: 'engagés, sans ligne politique imposée.', pauseMs: 2800 },
+  { text: 'des étudiants qui croient en la démocratie.', pauseMs: 2800 },
+  { text: 'là pour réconcilier les jeunes avec la politique.', pauseMs: 3000 },
   { text: 'des parlementaires, pas des spectateurs.', pauseMs: 2500 },
   { text: 'un laboratoire de démocratie.', pauseMs: 2200 },
 ]
