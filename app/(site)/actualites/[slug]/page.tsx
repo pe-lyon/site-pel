@@ -63,7 +63,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           boxShadow: '0 8px 40px rgba(4,67,154,0.10)',
         }}>
           {/* En-tête */}
-          <div style={{ padding: '2.5rem 2.5rem 2rem' }}>
+          <div style={{ padding: 'clamp(1.25rem, 5vw, 2.5rem) clamp(1.25rem, 5vw, 2.5rem) 2rem' }}>
             {article.categorie && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
@@ -113,7 +113,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
           {/* Contenu */}
           {contenuTexte && (
-            <div style={{ padding: '2rem 2.5rem' }}>
+            <div style={{ padding: 'clamp(1.25rem, 4vw, 2rem) clamp(1.25rem, 5vw, 2.5rem)' }}>
               <div style={{ fontFamily: 'var(--font-corps)', fontSize: '1rem', color: '#374151', lineHeight: 1.8 }}>
                 {contenuTexte.split('\n').filter(Boolean).map((p, i) => (
                   <p key={i} style={{ marginBottom: '1.25rem' }}>{p}</p>
@@ -123,7 +123,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           )}
 
           {/* Partage */}
-          <div style={{ padding: '0 2.5rem 2.5rem' }}>
+          <div style={{ padding: '0 clamp(1.25rem, 5vw, 2.5rem) clamp(1.25rem, 4vw, 2.5rem)' }}>
             <div style={{ height: '1px', background: 'rgba(4,67,154,0.08)', marginBottom: '1.5rem' }} />
             <ShareButtons url={articleUrl} titre={article.titre} />
           </div>

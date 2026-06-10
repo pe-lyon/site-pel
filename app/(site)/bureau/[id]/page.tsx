@@ -75,8 +75,8 @@ export default async function MembrePage({ params }: { params: Promise<{ id: str
           {/* En-tête colorée */}
           <div style={{
             background: 'linear-gradient(135deg, #04439a 0%, #1a5fc0 100%)',
-            padding: '3rem 2.5rem 2rem',
-            display: 'flex', alignItems: 'flex-end', gap: '2rem', flexWrap: 'wrap',
+            padding: 'clamp(1.5rem, 5vw, 3rem) clamp(1.25rem, 5vw, 2.5rem) 2rem',
+            display: 'flex', alignItems: 'flex-end', gap: '1.5rem', flexWrap: 'wrap',
           }}>
             {/* Photo / Avatar */}
             <div style={{
@@ -119,7 +119,7 @@ export default async function MembrePage({ params }: { params: Promise<{ id: str
           </div>
 
           {/* Corps */}
-          <div style={{ padding: '2rem 2.5rem', display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
+          <div style={{ padding: 'clamp(1.25rem, 4vw, 2rem) clamp(1.25rem, 5vw, 2.5rem)', display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
 
             {/* Bio */}
             {m.bio && (

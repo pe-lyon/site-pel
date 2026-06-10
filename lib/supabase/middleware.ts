@@ -30,7 +30,7 @@ export async function updateSession(request: NextRequest) {
   // Routes entièrement publiques (site vitrine + séance publique)
   const publicPrefixes = [
     '/', '/presentation', '/bureau', '/groupes',
-    '/actualites', '/agenda', '/ressources', '/contact',
+    '/actualites', '/agenda', '/ressources', '/contact', '/rejoindre',
     '/journal-officiel', '/loi', '/parlementaires', '/resultats',
     '/seance', '/seances', '/login', '/admin/login', '/auth/callback', '/mot-de-passe-oublie',
     '/api/auth', '/api/public',

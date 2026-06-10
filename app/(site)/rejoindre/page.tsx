@@ -35,7 +35,7 @@ export default async function RejoindreePage() {
             {/* Header bleu */}
             <div style={{
               background: 'linear-gradient(135deg, #04439a 0%, #1a5fc0 100%)',
-              padding: '3rem 2.5rem',
+              padding: 'clamp(1.5rem, 5vw, 3rem) clamp(1.25rem, 5vw, 2.5rem)',
               textAlign: 'center',
             }}>
               <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🏛️</div>
@@ -52,7 +52,7 @@ export default async function RejoindreePage() {
             </div>
 
             {/* Corps */}
-            <div style={{ padding: '2.5rem' }}>
+            <div style={{ padding: 'clamp(1.25rem, 5vw, 2.5rem)' }}>
 
               {/* Étapes */}
               <div style={{ marginBottom: '2.5rem' }}>
