@@ -19,11 +19,16 @@ function parseRole(role: string) {
 }
 
 export default async function BureauPage() {
-  const { data: membres } = await adminClient
+  const { data: membres, error: membresError } = await adminClient
     .from('bureau_membres')
     .select('*')
     .eq('actif', true)
     .order('ordre', { ascending: true })
+
+  if (membresError) {
+    console.error('[BureauPage] Supabase error:', membresError)
+    throw new Error(`Supabase: ${membresError.message}`)
+  }
 
   const grouped: Record<string, any[]> = {}
   for (const m of (membres ?? [])) {

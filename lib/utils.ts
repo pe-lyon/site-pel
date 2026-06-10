@@ -25,8 +25,8 @@ export function formatDateTime(date: string | null): string {
   }).format(new Date(date))
 }
 
-export function getInitials(firstName: string, lastName: string): string {
-  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+export function getInitials(firstName?: string | null, lastName?: string | null): string {
+  return `${(firstName ?? '').charAt(0)}${(lastName ?? '').charAt(0)}`.toUpperCase()
 }
 
 export async function logAction(
