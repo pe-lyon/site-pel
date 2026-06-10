@@ -96,9 +96,8 @@ export default function HomeContent({ settings, evenements, actualites, chiffres
             <Link href="/presentation" className="hero-cta-rouge">
               Découvrir le PEL
             </Link>
-            <Link href="/seance" className="hero-cta-glass">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Séance en direct
+            <Link href="/rejoindre" className="hero-cta-glass">
+              Nous rejoindre →
             </Link>
           </div>
 
