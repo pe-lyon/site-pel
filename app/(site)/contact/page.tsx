@@ -1,3 +1,4 @@
+'use client'
 import { Mail, Instagram } from 'lucide-react'
 import SiteHero from '@/components/site/SiteHero'
 
