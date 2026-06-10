@@ -69,7 +69,6 @@ export default function TypewriterText() {
           <span style={{
             fontWeight: 700,
             color: '#e84444',
-            animation: 'glow-pulse 2.5s ease-in-out infinite',
           }}>
             {displayed}
           </span>
