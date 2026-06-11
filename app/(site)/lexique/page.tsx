@@ -162,7 +162,7 @@ const TERMES: { lettre: string; termes: { mot: string; definition: string }[] }[
     termes: [
       {
         mot: 'Opposition',
-        definition: 'Ensemble des groupes politiques qui ne soutiennent pas la majorité présente au Bureau. L\'opposition joue un rôle essentiel de contrôle et de contre-pouvoir en hémicycle.',
+        definition: 'Au PEL, il n\'existe pas d\'opposition institutionnelle permanente face à un gouvernement. Les groupes politiques défendent librement leurs positions en hémicycle lors de chaque débat. Ponctuellement, certaines séances peuvent mettre en scène une dynamique majorité/opposition dans le cadre d\'un jeu de rôle parlementaire simulé.',
       },
       {
         mot: 'Ordre du jour',
@@ -210,10 +210,6 @@ const TERMES: { lettre: string; termes: { mot: string; definition: string }[] }[
   {
     lettre: 'Q',
     termes: [
-      {
-        mot: 'Question au Bureau',
-        definition: 'Interrogation posée oralement ou par écrit par un parlementaire à destination du Bureau sur un sujet relevant de sa compétence. Elle peut donner lieu à un débat bref.',
-      },
       {
         mot: 'Quorum',
         definition: 'Nombre minimum de parlementaires devant être présents ou représentés pour que la séance puisse délibérer et que les votes soient valides. En l\'absence de quorum, la séance ne peut pas voter.',
