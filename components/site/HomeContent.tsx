@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import TypewriterText from './TypewriterText'
+import NewsletterForm from './NewsletterForm'
 
 interface Props {
   settings: Record<string, string>
@@ -313,6 +314,31 @@ export default function HomeContent({ settings, evenements, actualites, chiffres
           </div>
         </section>
       )}
+
+      {/* ——————————————— NEWSLETTER ——————————————— */}
+      <section className="py-16 relative overflow-hidden">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6">
+          <div style={{
+            background: 'rgba(255,255,255,0.55)',
+            backdropFilter: 'blur(20px) saturate(160%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+            border: '1px solid rgba(255,255,255,0.75)',
+            boxShadow: '0 4px 24px rgba(4,67,154,0.07), inset 0 1px 0 rgba(255,255,255,0.9)',
+            borderRadius: '1.5rem',
+            padding: 'clamp(1.5rem, 5vw, 2.5rem)',
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📬</div>
+            <h2 style={{ fontFamily: 'var(--font-titre)', fontSize: 'clamp(1.2rem, 3vw, 1.6rem)', color: 'var(--pel-bleu)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
+              Newsletter du PEL
+            </h2>
+            <p style={{ fontFamily: 'var(--font-corps)', color: '#6b7280', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+              Actualités, comptes-rendus de séances, agenda — directement dans ta boîte mail.
+            </p>
+            <NewsletterForm />
+          </div>
+        </div>
+      </section>
 
       {/* ——————————————— CTA FINAL ——————————————— */}
       <section className="py-28 relative overflow-hidden">

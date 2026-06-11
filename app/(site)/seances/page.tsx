@@ -14,6 +14,14 @@ function formatDate(dt: string) {
 }
 
 export default async function SeancesArchivePage() {
+  // Charger les compte-rendus
+  const { data: crSettings } = await adminClient
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'comptes_rendus_json')
+    .single()
+  const comptesRendus: any[] = crSettings?.value ? JSON.parse(crSettings.value) : []
+
   // Charger les séances
   const { data: seances } = await adminClient
     .from('seances')
@@ -65,6 +73,47 @@ export default async function SeancesArchivePage() {
       />
 
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
+
+        {/* Section comptes-rendus */}
+        {comptesRendus.length > 0 && (
+          <div style={{ marginBottom: '3rem' }}>
+            <h2 style={{ fontFamily: 'var(--font-titre)', fontSize: '1.3rem', color: '#1e3a5f', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              📋 Comptes-rendus téléchargeables
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.875rem' }}>
+              {comptesRendus.map((cr: any) => (
+                <a
+                  key={cr.id}
+                  href={cr.pdf_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    ...glassCard,
+                    padding: '1.25rem',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                  }}
+                >
+                  <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontSize: '1.4rem' }}>📄</span>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontFamily: 'var(--font-titre)', fontWeight: 700, color: '#1e3a5f', margin: 0, fontSize: '0.9rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {cr.nom || cr.seance_titre}
+                    </p>
+                    <p style={{ color: '#9ca3af', fontSize: '0.75rem', margin: '3px 0 0', fontFamily: 'var(--font-corps)' }}>
+                      {formatDate(cr.date)} · PDF
+                    </p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         {seancesWithStats.length === 0 ? (
           <div style={{ ...glassCard, textAlign: 'center', padding: '4rem' }}>
             <p style={{ color: '#6b7280', fontSize: '1.1rem' }}>Aucune séance enregistrée pour le moment.</p>

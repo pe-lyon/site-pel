@@ -85,6 +85,8 @@ export default function ProfilsAdminPage() {
   const [editingId, setEditingId]         = useState<string | null>(null)
   const [editRole, setEditRole]           = useState('')
   const [editPerms, setEditPerms]         = useState<string[]>([])
+  const [editUniv, setEditUniv]           = useState('')
+  const [univMap, setUnivMap]             = useState<Record<string, string>>({})
 
   const emailPreview = buildEmail(firstName, lastName)
 
@@ -92,11 +94,12 @@ export default function ProfilsAdminPage() {
 
   async function fetchProfiles() {
     setLoadingProfiles(true)
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, first_name, last_name, email, role, permissions')
-      .order('last_name')
-    setProfiles(data ?? [])
+    const [profilesRes, univRes] = await Promise.all([
+      supabase.from('profiles').select('id, first_name, last_name, email, role, permissions').order('last_name'),
+      supabase.from('site_settings').select('value').eq('key', 'profils_universite_json').single(),
+    ])
+    setProfiles(profilesRes.data ?? [])
+    setUnivMap(univRes.data?.value ? JSON.parse(univRes.data.value) : {})
     setLoadingProfiles(false)
   }
 
@@ -145,6 +148,7 @@ export default function ProfilsAdminPage() {
     setEditingId(p.id)
     setEditRole(p.role)
     setEditPerms(p.permissions ?? [])
+    setEditUniv(univMap[p.id] ?? '')
   }
 
   async function saveEdit(profileId: string) {
@@ -152,6 +156,20 @@ export default function ProfilsAdminPage() {
       .from('profiles')
       .update({ role: editRole, permissions: editPerms })
       .eq('id', profileId)
+
+    // Save universite in site_settings
+    const newUnivMap = { ...univMap }
+    if (editUniv.trim()) {
+      newUnivMap[profileId] = editUniv.trim()
+    } else {
+      delete newUnivMap[profileId]
+    }
+    await supabase.from('site_settings').upsert({
+      key: 'profils_universite_json',
+      value: JSON.stringify(newUnivMap),
+    })
+    setUnivMap(newUnivMap)
+
     if (error) {
       toast.error('Erreur lors de la modification')
     } else {
@@ -308,6 +326,16 @@ export default function ProfilsAdminPage() {
                         ))}
                       </div>
                     </div>
+                    {/* Université */}
+                    <div style={{ marginBottom: 12 }}>
+                      <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>🎓 Université / École</p>
+                      <input
+                        value={editUniv}
+                        onChange={e => setEditUniv(e.target.value)}
+                        placeholder="ex: Université Jean Moulin Lyon 3"
+                        style={{ ...glassInput(), maxWidth: 320 }}
+                      />
+                    </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button onClick={() => saveEdit(p.id)} style={{ background: '#04439a', color: 'white', border: 'none', borderRadius: 7, padding: '6px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Enregistrer</button>
                       <button onClick={() => setEditingId(null)} style={{ background: 'rgba(4,67,154,0.08)', color: '#475569', border: '1px solid rgba(4,67,154,0.15)', borderRadius: 7, padding: '6px 16px', fontSize: 13, cursor: 'pointer' }}>Annuler</button>
@@ -322,6 +350,9 @@ export default function ProfilsAdminPage() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontWeight: 600, fontSize: 14, color: '#1e293b', margin: 0 }}>{p.first_name} {p.last_name}</p>
                       <p style={{ fontSize: 12, color: '#64748b', margin: '1px 0 0' }}>{p.email?.replace('@assemblee-pel.fr', '')} <span style={{ color: '#cbd5e1' }}>@assemblee-pel.fr</span></p>
+                      {univMap[p.id] && (
+                        <p style={{ fontSize: 11, color: '#9ca3af', margin: '2px 0 0' }}>🎓 {univMap[p.id]}</p>
+                      )}
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, justifyContent: 'flex-end', flex: 1 }}>
                       <span style={{ background: 'rgba(4,67,154,0.10)', color: '#04439a', borderRadius: 6, padding: '3px 9px', fontSize: 12, fontWeight: 500 }}>

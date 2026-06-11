@@ -22,12 +22,16 @@ export async function POST(request: NextRequest) {
   if (!file) return NextResponse.json({ error: 'Aucun fichier' }, { status: 400 })
 
   // Validation
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+  const isPdf = bucket === 'comptes-rendus'
+  const allowedTypes = isPdf
+    ? ['application/pdf']
+    : ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
   if (!allowedTypes.includes(file.type)) {
-    return NextResponse.json({ error: 'Format non supporté (JPEG, PNG, WebP, GIF)' }, { status: 400 })
+    return NextResponse.json({ error: isPdf ? 'Format non supporté (PDF uniquement)' : 'Format non supporté (JPEG, PNG, WebP, GIF)' }, { status: 400 })
   }
-  if (file.size > 5 * 1024 * 1024) {
-    return NextResponse.json({ error: 'Fichier trop lourd (max 5 Mo)' }, { status: 400 })
+  const maxSize = isPdf ? 20 * 1024 * 1024 : 5 * 1024 * 1024
+  if (file.size > maxSize) {
+    return NextResponse.json({ error: `Fichier trop lourd (max ${isPdf ? '20' : '5'} Mo)` }, { status: 400 })
   }
 
   const ext = file.name.split('.').pop() ?? 'jpg'

@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Calendar, Newspaper, Info, Users, Settings, LogOut, Globe, UserPlus, ClipboardCheck } from 'lucide-react'
+import { LayoutDashboard, Calendar, Newspaper, Info, Users, Settings, LogOut, Globe, UserPlus, ClipboardCheck, FileText, Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
@@ -15,6 +15,7 @@ const NAV = [
   { href: '/admin/bureau', label: 'Bureau', icon: Users },
   { href: '/admin/profils', label: 'Création de profil', icon: UserPlus },
   { href: '/admin/contributions', label: 'Contributions', icon: ClipboardCheck, badge: true },
+  { href: '/admin/comptes-rendus', label: 'Comptes-rendus PDF', icon: FileText },
   { href: '/admin/parametres', label: 'Paramètres', icon: Settings },
 ]
 

@@ -94,7 +94,7 @@ export default async function Footer() {
               Plateforme
             </p>
             <ul className="space-y-2">
-              {[['/seance', 'Séance en cours'], ['/ressources', 'Ressources'], ['/login', 'Espace parlementaire']].map(([h, l]) => (
+              {[['/seance', 'Séance en cours'], ['/seances', 'Archives séances'], ['/parlementaires', 'Parlementaires'], ['/ressources', 'Ressources'], ['/lexique', 'Lexique'], ['/login', 'Espace parlementaire']].map(([h, l]) => (
                 <li key={h}>
                   <Link href={h} className="text-sm text-gray-500 hover:text-[#04439a] transition-colors" style={{ fontFamily: 'var(--font-corps)' }}>
                     {l}
@@ -104,15 +104,23 @@ export default async function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Contact & newsletter */}
           <div>
             <p className="font-semibold text-xs mb-4 uppercase tracking-widest" style={{ color: 'var(--pel-bleu)', fontFamily: 'var(--font-corps)' }}>
-              Contact
+              Rester informé·e
             </p>
-            <a href={`mailto:${emailContact}`} className="text-sm text-gray-500 hover:text-[#04439a] transition-colors" style={{ fontFamily: 'var(--font-corps)' }}>
+            <ul className="space-y-2 mb-4">
+              {[['/newsletter', '📧 Newsletter'], ['/presse', '📰 Espace presse'], ['/partenaires', '🤝 Partenaires'], ['/contact', 'Nous contacter']].map(([h, l]) => (
+                <li key={h}>
+                  <Link href={h} className="text-sm text-gray-500 hover:text-[#04439a] transition-colors" style={{ fontFamily: 'var(--font-corps)' }}>
+                    {l}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <a href={`mailto:${emailContact}`} className="text-xs text-gray-400 hover:text-[#04439a] transition-colors" style={{ fontFamily: 'var(--font-corps)', wordBreak: 'break-all' }}>
               {emailContact}
             </a>
-            <p className="text-sm text-gray-400 mt-2" style={{ fontFamily: 'var(--font-corps)' }}>Université de Lyon</p>
           </div>
         </div>
 
