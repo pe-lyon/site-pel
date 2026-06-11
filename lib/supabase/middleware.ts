@@ -34,6 +34,7 @@ export async function updateSession(request: NextRequest) {
     '/journal-officiel', '/loi', '/parlementaires', '/resultats',
     '/seance', '/seances', '/login', '/admin/login', '/auth/callback', '/mot-de-passe-oublie',
     '/api/auth', '/api/public',
+    '/lexique', '/partenaires', '/presse',
   ]
   const isPublic = publicPrefixes.some(prefix =>
     pathname === prefix || (prefix !== '/' && pathname.startsWith(prefix + '/'))

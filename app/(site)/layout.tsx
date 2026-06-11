@@ -1,6 +1,17 @@
+import type { Metadata } from 'next'
 import Header from '@/components/site/Header'
 import Footer from '@/components/site/Footer'
 import AccessibilityMenu from '@/components/site/AccessibilityMenu'
+
+export const metadata: Metadata = {
+  alternates: {
+    types: {
+      'application/rss+xml': [
+        { url: '/api/public/rss', title: 'Actualités PEL' },
+      ],
+    },
+  },
+}
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (

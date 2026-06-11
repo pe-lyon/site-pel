@@ -15,6 +15,9 @@ const NAV = [
   { href: '/journal-officiel', label: 'Journal officiel' },
   { href: '/seances', label: 'Séances' },
   { href: '/ressources', label: 'Ressources' },
+  { href: '/lexique', label: 'Lexique' },
+  { href: '/partenaires', label: 'Partenaires' },
+  { href: '/presse', label: 'Presse' },
 ]
 
 export default function Header() {
