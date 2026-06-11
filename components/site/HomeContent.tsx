@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import TypewriterText from './TypewriterText'
-import NewsletterForm from './NewsletterForm'
 
 interface Props {
   settings: Record<string, string>
@@ -326,16 +325,29 @@ export default function HomeContent({ settings, evenements, actualites, chiffres
             boxShadow: '0 4px 24px rgba(4,67,154,0.07), inset 0 1px 0 rgba(255,255,255,0.9)',
             borderRadius: '1.5rem',
             padding: 'clamp(1.5rem, 5vw, 2.5rem)',
-            textAlign: 'center',
+            display: 'flex', alignItems: 'center', gap: 'clamp(1rem, 4vw, 2.5rem)',
+            flexWrap: 'wrap',
           }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📬</div>
-            <h2 style={{ fontFamily: 'var(--font-titre)', fontSize: 'clamp(1.2rem, 3vw, 1.6rem)', color: 'var(--pel-bleu)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
-              Newsletter du PEL
-            </h2>
-            <p style={{ fontFamily: 'var(--font-corps)', color: '#6b7280', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
-              Actualités, comptes-rendus de séances, agenda — directement dans ta boîte mail.
-            </p>
-            <NewsletterForm />
+            <div style={{ fontSize: '2.5rem', flexShrink: 0 }}>📬</div>
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <h2 style={{ fontFamily: 'var(--font-titre)', fontSize: 'clamp(1.1rem, 2.5vw, 1.4rem)', color: 'var(--pel-bleu)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}>
+                Newsletter — Prochainement
+              </h2>
+              <p style={{ fontFamily: 'var(--font-corps)', color: '#6b7280', fontSize: '0.9rem', margin: 0 }}>
+                Reçois les actualités du PEL directement dans ta boîte mail. Disponible très bientôt.
+              </p>
+            </div>
+            <Link
+              href="/newsletter"
+              style={{
+                flexShrink: 0, padding: '0.75rem 1.5rem', borderRadius: '0.75rem',
+                background: 'var(--pel-bleu)', color: 'white',
+                fontFamily: 'var(--font-corps)', fontWeight: 700, fontSize: '0.9rem',
+                textDecoration: 'none', whiteSpace: 'nowrap',
+              }}
+            >
+              En savoir plus →
+            </Link>
           </div>
         </div>
       </section>
