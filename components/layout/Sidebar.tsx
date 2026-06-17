@@ -78,23 +78,33 @@ export default function Sidebar({ role, firstName, lastName }: SidebarProps) {
   const [openSession, setOpenSession] = useState<{ id: string; title: string } | null>(null)
 
   useEffect(() => {
-    const supabase = createClient()
+    const client = createClient()
+    let cancelled = false
+
     async function fetchOpenSession() {
       try {
-        const { data } = await supabase
+        const { data } = await client
           .from('vote_sessions')
           .select('id, title')
           .eq('status', 'ouvert')
           .maybeSingle()
-        setOpenSession(data ?? null)
+        if (!cancelled) setOpenSession(data ?? null)
       } catch { /* ignore */ }
     }
+
     fetchOpenSession()
-    const channel = supabase
-      .channel('sidebar-vote-sessions')
+
+    // Nom unique pour éviter les conflits lors des navigations rapides
+    const channelName = `sidebar-vote-sessions-${Date.now()}`
+    const channel = client
+      .channel(channelName)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'vote_sessions' }, fetchOpenSession)
       .subscribe()
-    return () => { supabase.removeChannel(channel) }
+
+    return () => {
+      cancelled = true
+      client.removeChannel(channel)
+    }
   }, [])
 
   async function handleLogout() {
