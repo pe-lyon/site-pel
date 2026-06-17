@@ -335,7 +335,6 @@ export default function Header() {
             style={{
               marginTop: '6px',
               borderRadius: '1.25rem',
-              overflow: 'hidden',
               background: 'rgba(255,255,255,0.97)',
               backdropFilter: 'blur(24px)',
               WebkitBackdropFilter: 'blur(24px)',
@@ -343,6 +342,8 @@ export default function Header() {
               border: '1px solid rgba(255,255,255,0.7)',
               width: 'calc(100vw - 2rem)',
               maxWidth: '400px',
+              maxHeight: 'calc(100dvh - 80px)',
+              overflowY: 'auto',
             }}
           >
             <div className="px-3 py-3">
