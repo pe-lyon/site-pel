@@ -109,7 +109,6 @@ function DropdownItem({
           position: 'absolute',
           top: 'calc(100% + 10px)',
           left: '50%',
-          transform: 'translateX(-50%)',
           minWidth: '240px',
           background: 'rgba(255,255,255,0.97)',
           backdropFilter: 'blur(24px) saturate(180%)',
