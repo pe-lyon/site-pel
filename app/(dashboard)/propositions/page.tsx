@@ -11,7 +11,9 @@ import TopBar from '@/components/layout/TopBar'
 import toast from 'react-hot-toast'
 
 const ELIGIBLE_ROLES = ['president_groupe', 'ministre', 'president_seance', 'parlementaire']
-const PROJET_ROLES = ['president_groupe', 'ministre']
+// Seul le Premier ministre (rôle 'ministre') peut déposer un projet de loi
+// Les présidents de groupe déposent des propositions comme les autres parlementaires
+const PROJET_ROLES = ['ministre']
 
 interface Bill {
   id: string
@@ -76,7 +78,7 @@ export default function PropositionsPage() {
     if (!profile) return
     setSubmitting(true)
     try {
-      // Generate number PEL-YYYY-NNN
+      // Générer le numéro PEL-YYYY-NNN
       const year = new Date().getFullYear()
       const { count } = await supabase
         .from('bills')
@@ -85,23 +87,32 @@ export default function PropositionsPage() {
       const seq = String((count ?? 0) + 1).padStart(3, '0')
       const number = `PEL-${year}-${seq}`
 
-      const { error } = await supabase.from('bills').insert({
-        number,
-        title: form.title,
-        description: form.description || null,
-        full_text: form.full_text || null,
-        author_id: profile.id,
-        status: 'deposee',
-        type: form.type,
+      // Passer par la route admin (service role) pour contourner la RLS
+      const res = await fetch('/api/admin/write', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          table: 'bills',
+          operation: 'insert',
+          data: {
+            number,
+            title: form.title,
+            description: form.description || null,
+            full_text: form.full_text || null,
+            author_id: profile.id,
+            status: 'deposee',
+            type: form.type,
+          },
+        }),
       })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error ?? 'Erreur lors du dépôt')
 
-      if (error) throw error
-
-      toast.success('Proposition déposée avec succès')
+      toast.success('Proposition déposée avec succès ✅')
       setShowModal(false)
       setForm({ type: 'proposition_de_loi', title: '', description: '', full_text: '' })
 
-      // Reload bills
+      // Recharger la liste
       const { data: billsData } = await supabase
         .from('bills')
         .select('id, number, title, description, status, type, created_at, profiles(first_name, last_name)')
@@ -234,7 +245,7 @@ export default function PropositionsPage() {
                     />
                     <div>
                       <p className="font-medium text-sm text-gray-900">Proposition de loi</p>
-                      <p className="text-xs text-gray-500">Accessible à tous les parlementaires</p>
+                      <p className="text-xs text-gray-500">Accessible à tous les parlementaires et présidents de groupe</p>
                     </div>
                   </label>
                   {canProjet && (
@@ -249,7 +260,7 @@ export default function PropositionsPage() {
                       />
                       <div>
                         <p className="font-medium text-sm text-gray-900">Projet de loi</p>
-                        <p className="text-xs text-gray-500">Réservé aux présidents de groupe et ministres</p>
+                        <p className="text-xs text-gray-500">Réservé au Premier ministre (gouvernement uniquement)</p>
                       </div>
                     </label>
                   )}
