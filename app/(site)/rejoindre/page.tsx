@@ -19,7 +19,7 @@ export default async function RejoindreePage() {
       <SiteHero
         badge="Nous rejoindre"
         title="Rejoindre le PEL"
-        description="Tu es étudiant·e à Lyon et tu veux participer à la vie parlementaire ? Le PEL t'ouvre ses portes."
+        description="Tu es étudiante ou étudiant à Lyon et tu veux participer à la vie parlementaire ? Le PEL t'ouvre ses portes."
       />
 
       <section className="py-20">

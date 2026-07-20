@@ -22,7 +22,7 @@ function UnsubscribeContent() {
       const data = await res.json()
       if (res.ok) {
         setStatus('done')
-        setMsg('Tu as bien été désinscrit·e de la newsletter.')
+        setMsg('Tu as bien été désinscrite ou désinscrit de la newsletter.')
       } else {
         setStatus('error')
         setMsg(data.error ?? 'Une erreur est survenue')

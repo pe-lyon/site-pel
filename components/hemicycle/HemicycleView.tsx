@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Profile, PoliticalGroup } from '@/types'
 import { getInitials } from '@/lib/utils'
+import ParliamentChart from './ParliamentChart'
 
 interface Seat {
   profile: Profile
@@ -142,8 +143,6 @@ export default function HemicycleView() {
     return () => clearInterval(interval)
   }, [fetchData])
 
-  const seats = computeSeats(profiles)
-
   // Groupes triés par position politique
   const groupInfos: GroupInfo[] = groups.map(group => ({
     group,
@@ -151,6 +150,21 @@ export default function HemicycleView() {
   }))
     .filter(g => g.count > 0)
     .sort((a, b) => getPositionOrder(a.group) - getPositionOrder(b.group))
+
+  // Sièges triés gauche → droite pour ParliamentChart
+  const sortedProfiles = [...profiles].sort((a, b) => {
+    const pa = getPositionOrder(a.political_groups)
+    const pb = getPositionOrder(b.political_groups)
+    if (pa !== pb) return pa - pb
+    return (a.last_name ?? '').localeCompare(b.last_name ?? '')
+  })
+  const parliamentSeats = sortedProfiles.map(p => ({
+    id: p.id,
+    color: p.political_groups?.color ?? '#94a3b8',
+    label: `${p.first_name} ${p.last_name}`,
+    sublabel: p.political_groups?.name,
+    meta: p.role?.replace(/_/g, ' '),
+  }))
 
   if (loading) {
     return (
@@ -162,70 +176,19 @@ export default function HemicycleView() {
 
   return (
     <div className="flex flex-col lg:flex-row gap-6">
-      {/* SVG Hémicycle */}
+      {/* Hémicycle */}
       <div className="flex-1">
-        <div className="card overflow-hidden">
-          <div className="relative">
-            <svg
-              viewBox="0 0 1000 500"
-              className="w-full"
-              style={{ maxHeight: '500px' }}
-            >
-              {/* Arc de l'hémicycle */}
-              <path d="M 80 420 A 420 420 0 0 1 920 420" fill="none" stroke="#e5e7eb" strokeWidth="2" />
-              <path d="M 140 420 A 360 360 0 0 1 860 420" fill="none" stroke="#e5e7eb" strokeWidth="1.5" />
-              <path d="M 200 420 A 300 300 0 0 1 800 420" fill="none" stroke="#e5e7eb" strokeWidth="1.5" />
-              <path d="M 260 420 A 240 240 0 0 1 740 420" fill="none" stroke="#e5e7eb" strokeWidth="1.5" />
-
-              {/* Étiquette GAUCHE / DROITE */}
-              <text x="90" y="415" textAnchor="middle" fill="#9ca3af" fontSize="10" fontStyle="italic">Gauche</text>
-              <text x="910" y="415" textAnchor="middle" fill="#9ca3af" fontSize="10" fontStyle="italic">Droite</text>
-
-              {/* Podium présidence */}
-              <ellipse cx="500" cy="435" rx="65" ry="25" fill="#1a3a6b" />
-              <text x="500" y="432" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">
-                {presidentName.length > 20 ? presidentName.substring(0, 19) + '…' : presidentName}
-              </text>
-              <text x="500" y="444" textAnchor="middle" fill="rgba(255,255,255,0.7)" fontSize="7">
-                Président de séance
-              </text>
-
-              {/* Sièges */}
-              {seats.map((seat) => {
-                const group = seat.profile.political_groups
-                const color = group?.color ?? '#94a3b8'
-                const isSelected = selected?.id === seat.profile.id
-                return (
-                  <g
-                    key={seat.profile.id}
-                    onClick={() => setSelected(isSelected ? null : seat.profile)}
-                    className="cursor-pointer"
-                  >
-                    <circle
-                      cx={seat.x}
-                      cy={seat.y}
-                      r={isSelected ? 16 : 13}
-                      fill={color}
-                      stroke={isSelected ? '#1a3a6b' : 'white'}
-                      strokeWidth={isSelected ? 3 : 1.5}
-                      className="transition-all duration-150"
-                    />
-                    <text
-                      x={seat.x}
-                      y={seat.y + 4}
-                      textAnchor="middle"
-                      fill="white"
-                      fontSize="7"
-                      fontWeight="bold"
-                      className="pointer-events-none select-none"
-                    >
-                      {getInitials(seat.profile.first_name, seat.profile.last_name)}
-                    </text>
-                  </g>
-                )
-              })}
-            </svg>
-          </div>
+        <div className="card overflow-visible">
+          <ParliamentChart
+            seats={parliamentSeats}
+            selectedId={selected?.id ?? null}
+            onSelect={(id) => {
+              if (!id) { setSelected(null); return }
+              const p = profiles.find(x => x.id === id) ?? null
+              setSelected(p)
+            }}
+            presidentLabel={presidentName}
+          />
 
           {/* Fiche parlementaire sélectionné */}
           {selected && (

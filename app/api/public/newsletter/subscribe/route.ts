@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
               <div style="background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 24px rgba(4,67,154,0.08);">
                 <h1 style="color: #04439a; font-size: 24px; margin-bottom: 8px;">Bienvenue${prenom ? `, ${prenom}` : ''} ! 🎉</h1>
                 <p style="color: #374151; font-size: 16px; line-height: 1.6;">
-                  Tu es maintenant abonné·e à la newsletter du <strong>Parlement des Étudiants de Lyon</strong>.
+                  Tu es maintenant abonnée ou abonné à la newsletter du <strong>Parlement des Étudiants de Lyon</strong>.
                 </p>
                 <p style="color: #374151; font-size: 16px; line-height: 1.6;">
                   Tu recevras les dernières actualités, les comptes-rendus de séances et les annonces importantes directement dans ta boîte mail.

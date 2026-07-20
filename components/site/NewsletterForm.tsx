@@ -26,7 +26,7 @@ export default function NewsletterForm() {
         setStatus('success')
         setMsg(
           data.message === 'already_subscribed'
-            ? 'Tu es déjà abonné·e à la newsletter !'
+            ? 'Tu es déjà abonnée ou abonné à la newsletter !'
             : 'Inscription réussie ! Vérifie ta boîte mail 📬'
         )
       }

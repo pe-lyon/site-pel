@@ -89,7 +89,7 @@ export default function AdminBureauPage() {
       universite: form.universite || null, promotion: form.promotion || null,
       photo_url: form.photo_url || null,
     }
-    if (editing) {
+    if (editing !== null) {
       const res = await apiWrite('bureau_membres', 'update', data, { id: editing })
       if (res.error) return toast.error(`Erreur : ${res.error}`)
       toast.success('Membre modifié')

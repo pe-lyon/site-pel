@@ -107,7 +107,7 @@ export default async function Footer() {
           {/* Contact & newsletter */}
           <div>
             <p className="font-semibold text-xs mb-4 uppercase tracking-widest" style={{ color: 'var(--pel-bleu)', fontFamily: 'var(--font-corps)' }}>
-              Rester informé·e
+              Rester informée ou informé
             </p>
             <ul className="space-y-2 mb-4">
               {[['/newsletter', '📧 Newsletter'], ['/presse', '📰 Espace presse'], ['/partenaires', '🤝 Partenaires'], ['/contact', 'Nous contacter']].map(([h, l]) => (

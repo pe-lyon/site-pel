@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { getInitials } from '@/lib/utils'
+import ParliamentChart from '@/components/hemicycle/ParliamentChart'
 import AnnuaireParlementaires from '@/components/site/AnnuaireParlementaires'
 import SeanceStats from '@/components/site/SeanceStats'
 import ClassementGroupes from '@/components/site/ClassementGroupes'
@@ -15,35 +16,7 @@ const POSITION_ORDER: Record<string, number> = {
   extreme_droite: 8, monarchiste: 9, autre: 10,
 }
 
-function computeSeats(profiles: any[]) {
-  if (profiles.length === 0) return []
-  const cx = 500, cy = 420, rows = 4, baseRadius = 200, radiusStep = 60
-  const sorted = [...profiles].sort((a, b) => {
-    const pa = POSITION_ORDER[a.political_groups?.political_position] ?? 10
-    const pb = POSITION_ORDER[b.political_groups?.political_position] ?? 10
-    return pa !== pb ? pa - pb : (a.last_name ?? '').localeCompare(b.last_name ?? '')
-  })
-  const seatsPerRow: number[] = []
-  let remaining = sorted.length
-  for (let r = 0; r < rows; r++) {
-    const share = Math.ceil(remaining / (rows - r))
-    seatsPerRow.push(share)
-    remaining -= share
-  }
-  const seats: { profile: any; x: number; y: number }[] = []
-  let idx = 0
-  for (let r = 0; r < rows; r++) {
-    const count = seatsPerRow[r]
-    const radius = baseRadius + r * radiusStep
-    for (let i = 0; i < count; i++) {
-      if (idx >= sorted.length) break
-      const angle = Math.PI + (i / Math.max(count - 1, 1)) * Math.PI
-      seats.push({ profile: sorted[idx], x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) })
-      idx++
-    }
-  }
-  return seats
-}
+
 
 export default function SeancePage() {
   const [seance, setSeance] = useState<any>(null)
@@ -178,7 +151,6 @@ export default function SeancePage() {
   const pctPour = total > 0 ? Math.round(resultats.pour / total * 100) : 0
   const pctContre = total > 0 ? Math.round(resultats.contre / total * 100) : 0
   const pctAbs = total > 0 ? Math.round(resultats.abstention / total * 100) : 0
-  const seats = computeSeats(profiles)
   const groupInfos = groups
     .map(g => ({ group: g, count: profiles.filter(p => p.group_id === g.id).length }))
     .filter(g => g.count > 0)
@@ -398,28 +370,40 @@ export default function SeancePage() {
             <div className="bg-white rounded-2xl overflow-hidden border" style={{ borderColor: 'var(--pel-gris-light)' }}>
               <div className="flex flex-col lg:flex-row">
                 <div className="flex-1 p-4">
-                  <svg viewBox="0 0 1000 480" className="w-full" style={{ maxHeight: 360 }}>
-                    <path d="M 80 420 A 420 420 0 0 1 920 420" fill="none" stroke="#e5e7eb" strokeWidth="2"/>
-                    <path d="M 140 420 A 360 360 0 0 1 860 420" fill="none" stroke="#e5e7eb" strokeWidth="1.5"/>
-                    <path d="M 200 420 A 300 300 0 0 1 800 420" fill="none" stroke="#e5e7eb" strokeWidth="1.5"/>
-                    <path d="M 260 420 A 240 240 0 0 1 740 420" fill="none" stroke="#e5e7eb" strokeWidth="1.5"/>
-                    <text x="90" y="415" textAnchor="middle" fill="#9ca3af" fontSize="10" fontStyle="italic">Gauche</text>
-                    <text x="910" y="415" textAnchor="middle" fill="#9ca3af" fontSize="10" fontStyle="italic">Droite</text>
-                    <ellipse cx="500" cy="435" rx="65" ry="22" fill="#04439a"/>
-                    <text x="500" y="440" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">PRÉSIDENCE</text>
-                    {seats.map(seat => {
-                      const color = seat.profile.political_groups?.color ?? '#94a3b8'
-                      const isSel = selectedSeat?.id === seat.profile.id
-                      return (
-                        <g key={seat.profile.id} onClick={() => setSelectedSeat(isSel ? null : seat.profile)} className="cursor-pointer">
-                          <circle cx={seat.x} cy={seat.y} r={isSel ? 16 : 13} fill={color} stroke={isSel ? '#04439a' : 'white'} strokeWidth={isSel ? 3 : 1.5} className="transition-all duration-150"/>
-                          <text x={seat.x} y={seat.y + 4} textAnchor="middle" fill="white" fontSize="7" fontWeight="bold" className="pointer-events-none select-none">
-                            {getInitials(seat.profile.first_name, seat.profile.last_name)}
-                          </text>
-                        </g>
-                      )
-                    })}
-                  </svg>
+                  {(() => {
+                    const POSITION_ORDER_LOCAL: Record<string, number> = {
+                      extreme_gauche: 0, gauche_radicale: 1, gauche: 2, centre_gauche: 3,
+                      centre: 4, centre_droit: 5, droite: 6, droite_radicale: 7,
+                      extreme_droite: 8, monarchiste: 9, autre: 10,
+                    }
+                    const SIEGE_ROLES = ['parlementaire', 'president_groupe', 'ministre']
+                    const parliamentProfiles = profiles
+                      .filter((p: any) => SIEGE_ROLES.includes(p.role))
+                      .sort((a: any, b: any) => {
+                        const pa = POSITION_ORDER_LOCAL[a.political_groups?.political_position] ?? 10
+                        const pb = POSITION_ORDER_LOCAL[b.political_groups?.political_position] ?? 10
+                        return pa !== pb ? pa - pb : (a.last_name ?? '').localeCompare(b.last_name ?? '')
+                      })
+                    const parliamentSeats = parliamentProfiles.map((p: any) => ({
+                      id: p.id,
+                      color: p.political_groups?.color ?? '#94a3b8',
+                      label: `${p.first_name} ${p.last_name}`,
+                      sublabel: p.political_groups?.name,
+                      meta: p.role?.replace(/_/g, ' '),
+                    }))
+                    return (
+                      <ParliamentChart
+                        seats={parliamentSeats}
+                        selectedId={selectedSeat?.id ?? null}
+                        onSelect={(id) => {
+                          if (!id) { setSelectedSeat(null); return }
+                          const p = profiles.find((x: any) => x.id === id) ?? null
+                          setSelectedSeat(p)
+                        }}
+                        presidentLabel="PRÉSIDENCE"
+                      />
+                    )
+                  })()}
                   {selectedSeat && (
                     <div className="mx-4 mb-4 p-4 rounded-xl flex items-center gap-3 border-2" style={{ borderColor: selectedSeat.political_groups?.color ?? '#e5e7eb' }}>
                       <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ background: selectedSeat.political_groups?.color ?? '#94a3b8' }}>

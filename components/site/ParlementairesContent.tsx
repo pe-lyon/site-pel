@@ -5,8 +5,8 @@ import { GraduationCap, Search } from 'lucide-react'
 
 const ROLE_LABELS: Record<string, string> = {
   parlementaire: 'Parlementaire',
-  president_groupe: 'Président·e de groupe',
-  president_seance: 'Président·e de séance',
+  president_groupe: 'Président ou Présidente de groupe',
+  president_seance: 'Président ou Présidente de séance',
   ministre: 'Ministre',
 }
 

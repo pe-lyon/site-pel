@@ -25,7 +25,7 @@ import {
   Hand,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { UserRole } from '@/types'
+import { UserRole, ROLE_LABELS } from '@/types'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -150,7 +150,7 @@ export default function Sidebar({ role, firstName, lastName }: SidebarProps) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-white font-medium text-sm truncate">{firstName} {lastName}</p>
-            <p className="text-blue-200 text-xs truncate capitalize">{role.replace('_', ' ')}</p>
+            <p className="text-blue-200 text-xs truncate">{ROLE_LABELS[role] ?? role.replace(/_/g, ' ')}</p>
           </div>
         </div>
       </div>

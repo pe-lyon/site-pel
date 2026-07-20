@@ -159,11 +159,27 @@ export interface VoteResults {
   byGroup: Record<string, { name: string; color: string; pour: number; contre: number; abstention: number }>
 }
 
+/** Libellés masculins (par défaut) */
 export const ROLE_LABELS: Record<UserRole, string> = {
-  president_seance: 'Président de séance',
+  president_seance: "Président de l'Assemblée",
   president_groupe: 'Président de groupe',
   parlementaire: 'Parlementaire',
-  ministre: 'Ministre',
+  ministre: 'Premier ministre',
+}
+
+/** Libellés féminins */
+export const ROLE_LABELS_F: Record<UserRole, string> = {
+  president_seance: "Présidente de l'Assemblée",
+  president_groupe: 'Présidente de groupe',
+  parlementaire: 'Parlementaire',
+  ministre: 'Première ministre',
+}
+
+/** Retourne le libellé de rôle selon le genre ('M' | 'F' | null) */
+export function getRoleLabel(role: UserRole | string, genre?: 'M' | 'F' | null): string {
+  const r = role as UserRole
+  if (genre === 'F') return ROLE_LABELS_F[r] ?? role
+  return ROLE_LABELS[r] ?? role
 }
 
 export const STATUS_LABELS: Record<BillStatus, string> = {

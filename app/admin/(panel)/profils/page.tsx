@@ -22,8 +22,9 @@ function buildEmail(firstName: string, lastName: string) {
 
 const ROLES_PRINCIPAUX = [
   { value: 'parlementaire',    label: 'Parlementaire' },
-  { value: 'president_groupe', label: 'Président de groupe' },
-  { value: 'president_seance', label: 'Président de séance (Admin PEL)' },
+  { value: 'president_groupe', label: 'Président ou Présidente de groupe' },
+  { value: 'ministre',         label: 'Premier ou Première ministre' },
+  { value: 'president_seance', label: "Président ou Présidente de l'Assemblée (Admin)" },
 ]
 
 const ACCES_CONTRIBUTEURS = [
@@ -86,7 +87,9 @@ export default function ProfilsAdminPage() {
   const [editRole, setEditRole]           = useState('')
   const [editPerms, setEditPerms]         = useState<string[]>([])
   const [editUniv, setEditUniv]           = useState('')
+  const [editGenre, setEditGenre]         = useState<'M' | 'F' | ''>('')
   const [univMap, setUnivMap]             = useState<Record<string, string>>({})
+  const [genreMap, setGenreMap]           = useState<Record<string, 'M' | 'F'>>({})
 
   const emailPreview = buildEmail(firstName, lastName)
 
@@ -94,12 +97,14 @@ export default function ProfilsAdminPage() {
 
   async function fetchProfiles() {
     setLoadingProfiles(true)
-    const [profilesRes, univRes] = await Promise.all([
+    const [profilesRes, univRes, genreRes] = await Promise.all([
       supabase.from('profiles').select('id, first_name, last_name, email, role, permissions').order('last_name'),
       supabase.from('site_settings').select('value').eq('key', 'profils_universite_json').single(),
+      supabase.from('site_settings').select('value').eq('key', 'profils_genre_json').single(),
     ])
     setProfiles(profilesRes.data ?? [])
     setUnivMap(univRes.data?.value ? JSON.parse(univRes.data.value) : {})
+    setGenreMap(genreRes.data?.value ? JSON.parse(genreRes.data.value) : {})
     setLoadingProfiles(false)
   }
 
@@ -149,6 +154,7 @@ export default function ProfilsAdminPage() {
     setEditRole(p.role)
     setEditPerms(p.permissions ?? [])
     setEditUniv(univMap[p.id] ?? '')
+    setEditGenre((genreMap[p.id] ?? '') as 'M' | 'F' | '')
   }
 
   async function saveEdit(profileId: string) {
@@ -159,16 +165,17 @@ export default function ProfilsAdminPage() {
 
     // Save universite in site_settings
     const newUnivMap = { ...univMap }
-    if (editUniv.trim()) {
-      newUnivMap[profileId] = editUniv.trim()
-    } else {
-      delete newUnivMap[profileId]
-    }
-    await supabase.from('site_settings').upsert({
-      key: 'profils_universite_json',
-      value: JSON.stringify(newUnivMap),
-    })
+    if (editUniv.trim()) newUnivMap[profileId] = editUniv.trim()
+    else delete newUnivMap[profileId]
+    await supabase.from('site_settings').upsert({ key: 'profils_universite_json', value: JSON.stringify(newUnivMap) })
     setUnivMap(newUnivMap)
+
+    // Save genre in site_settings
+    const newGenreMap = { ...genreMap }
+    if (editGenre) newGenreMap[profileId] = editGenre as 'M' | 'F'
+    else delete newGenreMap[profileId]
+    await supabase.from('site_settings').upsert({ key: 'profils_genre_json', value: JSON.stringify(newGenreMap) })
+    setGenreMap(newGenreMap)
 
     if (error) {
       toast.error('Erreur lors de la modification')
@@ -326,6 +333,19 @@ export default function ProfilsAdminPage() {
                         ))}
                       </div>
                     </div>
+                    {/* Genre */}
+                    <div style={{ marginBottom: 12 }}>
+                      <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Genre</p>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {([['M', 'Masculin'], ['F', 'Féminin'], ['', 'Non précisé']] as const).map(([val, label]) => (
+                          <button key={val} type="button" onClick={() => setEditGenre(val as 'M' | 'F' | '')}
+                            style={{ padding: '5px 14px', borderRadius: 16, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: editGenre === val ? '2px solid #04439a' : '1.5px solid rgba(4,67,154,0.2)', background: editGenre === val ? 'rgba(4,67,154,0.12)' : 'rgba(255,255,255,0.5)', color: editGenre === val ? '#04439a' : '#475569' }}>
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     {/* Université */}
                     <div style={{ marginBottom: 12 }}>
                       <p style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>🎓 Université / École</p>
@@ -356,7 +376,11 @@ export default function ProfilsAdminPage() {
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, justifyContent: 'flex-end', flex: 1 }}>
                       <span style={{ background: 'rgba(4,67,154,0.10)', color: '#04439a', borderRadius: 6, padding: '3px 9px', fontSize: 12, fontWeight: 500 }}>
-                        {ALL_ROLES.find(r => r.value === p.role)?.label ?? p.role}
+                        {genreMap[p.id] === 'F'
+                          ? ({ president_seance: "Présidente de l'Assemblée", president_groupe: 'Présidente de groupe', parlementaire: 'Parlementaire', ministre: 'Première ministre' } as Record<string,string>)[p.role] ?? p.role
+                          : ALL_ROLES.find(r => r.value === p.role)?.label ?? p.role
+                        }
+                        {genreMap[p.id] && <span style={{ marginLeft: 4, opacity: 0.6 }}>{genreMap[p.id] === 'F' ? '(F)' : '(M)'}</span>}
                       </span>
                       {(p.permissions ?? []).map(perm => (
                         <span key={perm} style={{ background: 'rgba(99,102,241,0.10)', color: '#6366f1', borderRadius: 6, padding: '3px 9px', fontSize: 12, fontWeight: 500 }}>

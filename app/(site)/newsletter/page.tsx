@@ -6,7 +6,7 @@ export default function NewsletterPage() {
     <div>
       <SiteHero
         badge="Newsletter"
-        title="Restez informé·e"
+        title="Restez informées et informés"
         description="Recevez les actualités du Parlement des Étudiants de Lyon directement dans votre boîte mail."
       />
 
@@ -52,7 +52,7 @@ export default function NewsletterPage() {
 
             {/* En attendant → contact email */}
             <a
-              href="mailto:communication.pelyon@gmail.com?subject=Newsletter PEL — Inscription&body=Bonjour, je souhaite être informé·e des actualités du Parlement des Étudiants de Lyon."
+              href="mailto:communication.pelyon@gmail.com?subject=Newsletter PEL — Inscription&body=Bonjour, je souhaite être informée ou informé des actualités du Parlement des Étudiants de Lyon."
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                 padding: '0.875rem 1.75rem', borderRadius: '0.875rem',

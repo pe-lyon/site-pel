@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import {
@@ -92,8 +92,8 @@ interface VoteSession {
   status: string
 }
 
-export default function PropositionDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+export default function PropositionDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params
   // Supabase client stable (ne change pas entre renders)
   const supabaseRef = useRef(createClient())
   const supabase = supabaseRef.current
@@ -134,11 +134,9 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const [profileRes, billRes, cosRes, sessRes] = await Promise.all([
+      const [profileRes, billRes] = await Promise.all([
         supabase.from('profiles').select('id, first_name, last_name, role, group_id').eq('id', user.id).single(),
         supabase.from('bills').select('*, profiles(id, first_name, last_name, role, group_id)').eq('id', id).single(),
-        supabase.from('bill_cosignataires').select('id, user_id, signed_at, profiles(first_name, last_name, role)').eq('bill_id', id).order('signed_at'),
-        supabase.from('vote_sessions').select('id, title, opened_at, closed_at, status').eq('bill_id', id).order('created_at', { ascending: false }),
       ])
 
       if (cancelled) return
@@ -146,22 +144,24 @@ export default function PropositionDetailPage({ params }: { params: Promise<{ id
 
       setProfile(profileRes.data)
       setBill(billRes.data as unknown as Bill)
-      setCosignataires((cosRes.data as unknown as Cosignataire[]) ?? [])
-      setSessions((sessRes.data as VoteSession[]) ?? [])
 
-      // Nouvelles tables — silencieuses si migration pas encore appliquée
+      // Tables optionnelles — silencieuses si absentes ou colonnes manquantes
       try {
-        const [amendRes, oratRes, motRes] = await Promise.all([
+        const [cosRes, sessRes, amendRes, oratRes, motRes] = await Promise.all([
+          supabase.from('bill_cosignataires').select('id, user_id, signed_at, profiles(first_name, last_name, role)').eq('bill_id', id).order('signed_at'),
+          supabase.from('vote_sessions').select('id, title, opened_at, closed_at, status').eq('bill_id', id).order('created_at', { ascending: false }),
           supabase.from('amendements').select('*, profiles(first_name, last_name)').eq('bill_id', id).order('created_at'),
           supabase.from('liste_orateurs').select('*, profiles(first_name, last_name, group_id)').eq('bill_id', id).order('position'),
           supabase.from('motions_procedure').select('*, profiles(first_name, last_name)').eq('bill_id', id).order('created_at', { ascending: false }),
         ])
         if (!cancelled) {
+          if (!cosRes.error) setCosignataires((cosRes.data as unknown as Cosignataire[]) ?? [])
+          if (!sessRes.error) setSessions((sessRes.data as VoteSession[]) ?? [])
           if (!amendRes.error) setAmendements((amendRes.data as unknown as Amendement[]) ?? [])
           if (!oratRes.error) setOrateurs((oratRes.data as unknown as Orateur[]) ?? [])
           if (!motRes.error) setMotions((motRes.data as unknown as Motion[]) ?? [])
         }
-      } catch { /* tables pas encore créées */ }
+      } catch { /* tables pas encore créées ou colonnes absentes */ }
 
       if (!cancelled) setLoading(false)
     }

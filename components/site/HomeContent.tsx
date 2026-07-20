@@ -161,20 +161,36 @@ export default function HomeContent({ settings, evenements, actualites, chiffres
                   boxShadow: '0 24px 80px rgba(4,67,154,0.10), inset 0 1px 0 white',
                   minHeight: 340,
                 }}>
-                <svg viewBox="0 0 400 260" className="w-full max-w-sm">
-                  <path d="M 40 210 A 160 160 0 0 1 360 210" fill="none" stroke="#04439a" strokeWidth="2" opacity="0.15"/>
-                  <path d="M 70 210 A 130 130 0 0 1 330 210" fill="none" stroke="#04439a" strokeWidth="1.5" opacity="0.12"/>
-                  <path d="M 100 210 A 100 100 0 0 1 300 210" fill="none" stroke="#04439a" strokeWidth="1.5" opacity="0.12"/>
-                  {Array.from({length: 24}, (_, i) => {
-                    const row = Math.floor(i/8); const idx = i%8
-                    const r = 160 - row*30
-                    const angle = Math.PI + (idx/7)*Math.PI
-                    const x = 200 + r*Math.cos(angle); const y = 210 + r*Math.sin(angle)
-                    const colors = ['#b21d0b','#04439a','#059669','#d97706','#7c3aed','#ec4899']
-                    return <circle key={i} cx={x} cy={y} r={9} fill={colors[Math.floor(i/4)%colors.length]} opacity={0.85}/>
-                  })}
-                  <ellipse cx="200" cy="222" rx="32" ry="13" fill="#04439a"/>
-                  <text x="200" y="226" textAnchor="middle" fill="white" fontSize="7" fontWeight="bold">PRÉSIDENCE</text>
+                <svg viewBox="0 0 400 240" className="w-full max-w-sm">
+                  {/* Arcs */}
+                  {[160,130,100,72].map((r, i) => (
+                    <path key={i} d={`M ${200 - r} 210 A ${r} ${r} 0 0 1 ${200 + r} 210`}
+                      fill="none" stroke="#04439a" strokeWidth={i === 0 ? 1.5 : 1} opacity={0.10 + i * 0.02}/>
+                  ))}
+                  {/* Sièges répartis proportionnellement aux rayons */}
+                  {(() => {
+                    const colors = ['#b21d0b','#04439a','#059669','#d97706','#7c3aed','#ec4899','#0891b2','#65a30d']
+                    const radii = [72, 100, 130, 160]
+                    const total = 30
+                    const sumR = radii.reduce((a, b) => a + b, 0)
+                    const counts = radii.map(r => Math.round(total * r / sumR))
+                    const diff = total - counts.reduce((a, b) => a + b, 0)
+                    counts[counts.length - 1] += diff
+                    const circles: React.ReactNode[] = []
+                    let colorIdx = 0
+                    radii.forEach((r, ri) => {
+                      for (let i = 0; i < counts[ri]; i++) {
+                        const angle = Math.PI + (i / Math.max(counts[ri] - 1, 1)) * Math.PI
+                        const x = 200 + r * Math.cos(angle)
+                        const y = 210 + r * Math.sin(angle)
+                        circles.push(<circle key={`${ri}-${i}`} cx={x} cy={y} r={7} fill={colors[colorIdx % colors.length]} opacity={0.88}/>)
+                        colorIdx++
+                      }
+                    })
+                    return circles
+                  })()}
+                  <ellipse cx="200" cy="220" rx="32" ry="13" fill="#04439a"/>
+                  <text x="200" y="224" textAnchor="middle" fill="white" fontSize="7" fontWeight="bold">PRÉSIDENCE</text>
                 </svg>
                 <div className="absolute -bottom-5 -right-5 rounded-2xl px-5 py-3"
                   style={{
