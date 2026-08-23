@@ -7,13 +7,11 @@ interface Props {
   settings: Record<string, string>
   evenements: any[]
   actualites: any[]
-  chiffres: any[]
 }
 
-export default function HomeContent({ settings, evenements, actualites, chiffres }: Props) {
+export default function HomeContent({ settings, evenements, actualites }: Props) {
   const heroTitre = settings.hero_titre || 'PARLEMENT DES ÉTUDIANTS DE LYON'
   const heroSousTitre = settings.hero_sous_titre || "L'institution parlementaire étudiante de référence à Lyon"
-  const pelBref = settings.pel_bref_texte || "Le Parlement des Étudiants de Lyon est une institution parlementaire étudiante fondée sur les principes de la démocratie représentative."
 
   return (
     <div>
@@ -101,110 +99,6 @@ export default function HomeContent({ settings, evenements, actualites, chiffres
             </Link>
           </div>
 
-        </div>
-      </section>
-
-      {/* ——————————————— CHIFFRES ——————————————— */}
-      {chiffres.length > 0 && (
-        <section className="py-20 relative">
-          <div className="absolute inset-0" style={{ background: 'rgba(4,67,154,0.04)' }} />
-          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-              {chiffres.map((c: any) => (
-                <div key={c.id} className="chiffre-card group text-center p-7 rounded-3xl cursor-default">
-                  <p style={{
-                    fontFamily: 'var(--font-titre)',
-                    fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-                    fontWeight: 700, lineHeight: 1,
-                    color: 'var(--pel-bleu)',
-                  }}>{c.valeur}</p>
-                  <p className="text-gray-500 text-sm mt-2" style={{ fontFamily: 'var(--font-corps)' }}>{c.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ——————————————— PEL EN BREF ——————————————— */}
-      <section className="py-28 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4 text-xs font-semibold uppercase tracking-widest"
-                style={{
-                  background: 'rgba(178,29,11,0.08)',
-                  border: '1px solid rgba(178,29,11,0.15)',
-                  color: 'var(--pel-rouge)',
-                  fontFamily: 'var(--font-corps)',
-                  backdropFilter: 'blur(8px)',
-                }}>
-                Notre institution
-              </div>
-              <h2 className="mb-6" style={{
-                fontFamily: 'var(--font-titre)', fontSize: 'clamp(2rem,4vw,3.2rem)',
-                color: 'var(--pel-bleu)', fontWeight: 700, lineHeight: 1.05,
-              }}>LE PEL EN BREF</h2>
-              <p className="text-gray-600 leading-relaxed mb-8" style={{ fontFamily: 'var(--font-corps)', fontSize: '1.05rem' }}>
-                {pelBref}
-              </p>
-              <Link href="/presentation" className="btn-primary">En savoir plus →</Link>
-            </div>
-
-            <div className="relative">
-              <div className="rounded-3xl overflow-visible flex items-center justify-center relative p-10"
-                style={{
-                  background: 'rgba(255,255,255,0.50)',
-                  backdropFilter: 'blur(24px) saturate(160%)',
-                  WebkitBackdropFilter: 'blur(24px) saturate(160%)',
-                  border: '1px solid rgba(255,255,255,0.75)',
-                  boxShadow: '0 24px 80px rgba(4,67,154,0.10), inset 0 1px 0 white',
-                  minHeight: 340,
-                }}>
-                <svg viewBox="0 0 400 240" className="w-full max-w-sm">
-                  {/* Arcs */}
-                  {[160,130,100,72].map((r, i) => (
-                    <path key={i} d={`M ${200 - r} 210 A ${r} ${r} 0 0 1 ${200 + r} 210`}
-                      fill="none" stroke="#04439a" strokeWidth={i === 0 ? 1.5 : 1} opacity={0.10 + i * 0.02}/>
-                  ))}
-                  {/* Sièges répartis proportionnellement aux rayons */}
-                  {(() => {
-                    const colors = ['#b21d0b','#04439a','#059669','#d97706','#7c3aed','#ec4899','#0891b2','#65a30d']
-                    const radii = [72, 100, 130, 160]
-                    const total = 30
-                    const sumR = radii.reduce((a, b) => a + b, 0)
-                    const counts = radii.map(r => Math.round(total * r / sumR))
-                    const diff = total - counts.reduce((a, b) => a + b, 0)
-                    counts[counts.length - 1] += diff
-                    const circles: React.ReactNode[] = []
-                    let colorIdx = 0
-                    radii.forEach((r, ri) => {
-                      for (let i = 0; i < counts[ri]; i++) {
-                        const angle = Math.PI + (i / Math.max(counts[ri] - 1, 1)) * Math.PI
-                        const x = 200 + r * Math.cos(angle)
-                        const y = 210 + r * Math.sin(angle)
-                        circles.push(<circle key={`${ri}-${i}`} cx={x} cy={y} r={7} fill={colors[colorIdx % colors.length]} opacity={0.88}/>)
-                        colorIdx++
-                      }
-                    })
-                    return circles
-                  })()}
-                  <ellipse cx="200" cy="220" rx="32" ry="13" fill="#04439a"/>
-                  <text x="200" y="224" textAnchor="middle" fill="white" fontSize="7" fontWeight="bold">PRÉSIDENCE</text>
-                </svg>
-                <div className="absolute -bottom-5 -right-5 rounded-2xl px-5 py-3"
-                  style={{
-                    background: 'rgba(255,255,255,0.80)',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255,255,255,0.9)',
-                    boxShadow: '0 8px 32px rgba(4,67,154,0.12)',
-                  }}>
-                  <p style={{ fontFamily: 'var(--font-titre)', fontSize: '1.6rem', color: 'var(--pel-bleu)', fontWeight: 700 }}>2014</p>
-                  <p className="text-xs text-gray-400" style={{ fontFamily: 'var(--font-corps)' }}>Fondation</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 

@@ -8,34 +8,7 @@ import { usePathname } from 'next/navigation'
 /* ─── Structure de navigation ─────────────────────────────────────── */
 const NAV: NavItem[] = [
   { href: '/', label: 'Accueil' },
-  {
-    label: "L'institution",
-    children: [
-      { href: '/presentation', label: 'Présentation', desc: 'Histoire, valeurs, missions' },
-      { href: '/bureau',       label: 'Bureau',        desc: 'Les membres du bureau exécutif' },
-      { href: '/groupes',      label: 'Groupes',       desc: 'Les groupes politiques' },
-      { href: '/partenaires',  label: 'Partenaires',   desc: 'Universités et associations partenaires' },
-    ],
-  },
   { href: '/actualites', label: 'Actualités' },
-  {
-    label: 'Vie parlementaire',
-    children: [
-      { href: '/seances',         label: 'Séances',          desc: 'Archives et comptes-rendus' },
-      { href: '/journal-officiel',label: 'Journal officiel', desc: 'Textes adoptés en séance' },
-      { href: '/agenda',          label: 'Agenda',            desc: 'Événements à venir' },
-      { href: '/parlementaires',  label: 'Parlementaires',    desc: 'Annuaire des élus' },
-    ],
-  },
-  {
-    label: 'Ressources',
-    children: [
-      { href: '/ressources', label: 'Documents',  desc: 'Règlement, statuts, textes fondateurs' },
-      { href: '/lexique',    label: 'Lexique',    desc: 'Vocabulaire parlementaire expliqué' },
-      { href: '/presse',     label: 'Presse',     desc: 'Communiqués et contacts médias' },
-      { href: '/newsletter', label: 'Newsletter', desc: 'Recevoir les actualités par email' },
-    ],
-  },
 ]
 
 type NavChild = { href: string; label: string; desc: string }

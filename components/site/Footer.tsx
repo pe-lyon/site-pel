@@ -78,7 +78,7 @@ export default async function Footer() {
               Navigation
             </p>
             <ul className="space-y-2">
-              {[['/', 'Accueil'], ['/presentation', 'Présentation'], ['/bureau', 'Bureau'], ['/groupes', 'Groupes'], ['/actualites', 'Actualités'], ['/agenda', 'Agenda']].map(([h, l]) => (
+              {[['/', 'Accueil'], ['/actualites', 'Actualités'], ['/seance', 'Séance en direct'], ['/rejoindre', 'Rejoindre']].map(([h, l]) => (
                 <li key={h}>
                   <Link href={h} className="text-sm text-gray-500 hover:text-[#04439a] transition-colors" style={{ fontFamily: 'var(--font-corps)' }}>
                     {l}
@@ -94,7 +94,7 @@ export default async function Footer() {
               Plateforme
             </p>
             <ul className="space-y-2">
-              {[['/seance', 'Séance en cours'], ['/seances', 'Archives séances'], ['/parlementaires', 'Parlementaires'], ['/ressources', 'Ressources'], ['/lexique', 'Lexique'], ['/login', 'Espace parlementaire']].map(([h, l]) => (
+              {[['/login', 'Espace parlementaire']].map(([h, l]) => (
                 <li key={h}>
                   <Link href={h} className="text-sm text-gray-500 hover:text-[#04439a] transition-colors" style={{ fontFamily: 'var(--font-corps)' }}>
                     {l}
@@ -110,7 +110,7 @@ export default async function Footer() {
               Rester informée ou informé
             </p>
             <ul className="space-y-2 mb-4">
-              {[['/newsletter', '📧 Newsletter'], ['/presse', '📰 Espace presse'], ['/partenaires', '🤝 Partenaires'], ['/contact', 'Nous contacter']].map(([h, l]) => (
+              {[['/newsletter', '📧 Newsletter'], ['/contact', 'Nous contacter']].map(([h, l]) => (
                 <li key={h}>
                   <Link href={h} className="text-sm text-gray-500 hover:text-[#04439a] transition-colors" style={{ fontFamily: 'var(--font-corps)' }}>
                     {l}
